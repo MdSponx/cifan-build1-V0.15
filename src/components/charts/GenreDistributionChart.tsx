@@ -74,6 +74,9 @@ const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
   const GenreCountBadges = () => {
     if (data.length === 0) return null;
 
+    // Calculate total count for percentage calculation
+    const totalCount = data.reduce((sum, genre) => sum + genre.count, 0);
+
     return (
       <div className="mt-6 pt-4 border-t border-white/20">
         <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3 text-center`}>
@@ -91,12 +94,9 @@ const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
                   style={{ backgroundColor: genre.color }}
                 ></div>
                 <span className={`${getClass('body')} text-white/80 text-xs truncate`}>
-                  {genre.genre}
+                  {genre.genre} {genre.count} ({Math.round((genre.count / totalCount) * 100)}%)
                 </span>
               </div>
-              <span className={`${getClass('body')} text-white text-xs font-medium ml-2 flex-shrink-0`}>
-                {genre.count}
-              </span>
             </div>
           ))}
         </div>
