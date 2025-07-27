@@ -11,7 +11,7 @@ import {
   QueryDocumentSnapshot,
   Timestamp
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { db } from '../firebase';
 import { AdminApplicationData, DashboardStats, GenreStats, CountryStats } from '../types/admin.types';
 
 export interface SubmissionFilters {
