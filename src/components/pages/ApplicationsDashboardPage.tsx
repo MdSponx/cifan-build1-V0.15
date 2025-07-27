@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTypography } from '../../utils/typography';
-import { useToast } from '../ui/ToastContext';
+import { useNotificationHelpers } from '../ui/NotificationSystem';
 import { adminSubmissionService } from '../../services/adminSubmissionService';
 import { DashboardStats, GenreStats, CountryStats } from '../../types/admin.types';
 
@@ -32,7 +32,7 @@ interface ApplicationsDashboardPageProps {
 const ApplicationsDashboardPage: React.FC<ApplicationsDashboardPageProps> = ({ onSidebarToggle }) => {
   const { t, i18n } = useTranslation();
   const { getClass } = useTypography();
-  const { showSuccess, showError } = useToast();
+  const { showSuccess, showError } = useNotificationHelpers();
   const currentLanguage = i18n.language as 'en' | 'th';
 
   // State
