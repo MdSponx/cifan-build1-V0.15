@@ -7,7 +7,7 @@ import { DashboardStats, GenreStats, CountryStats } from '../../types/admin.type
 
 // Components
 import AdminZoneHeader from '../layout/AdminZoneHeader';
-import DashboardStatCard from '../admin/DashboardStatCard';
+import DashboardStatCard from '../ui/DashboardStatsCard';
 import GenreDistributionChart from '../charts/GenreDistributionChart';
 import CountryDistributionChart from '../charts/CountryDistributionChart';
 import ApplicationTrendsChart from '../charts/ApplicationTrendsChart';
