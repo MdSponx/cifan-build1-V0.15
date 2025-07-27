@@ -101,25 +101,37 @@ class AdminSubmissionService {
   async getGenreDistribution(): Promise<GenreStats[]> {
     try {
       const submissionsRef = collection(db, 'submissions');
-      const q = query(submissionsRef, where('status', '==', 'submitted'));
+      const q = query(submissionsRef);
       const snapshot = await getDocs(q);
       
       const genreCount: { [key: string]: number } = {};
+      let totalSubmissions = 0;
       
       snapshot.docs.forEach(doc => {
         const data = doc.data();
         if (data.genres && Array.isArray(data.genres)) {
+          totalSubmissions++;
           data.genres.forEach((genre: string) => {
             genreCount[genre] = (genreCount[genre] || 0) + 1;
           });
         }
       });
 
-      return Object.entries(genreCount).map(([genre, count]) => ({
+      // Generate colors for each genre
+      const colors = [
+        '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444',
+        '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1',
+        '#14B8A6', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4'
+      ];
+
+      return Object.entries(genreCount)
+        .map(([genre, count], index) => ({
         genre,
         count,
-        percentage: (count / snapshot.docs.length) * 100
-      }));
+        percentage: totalSubmissions > 0 ? Math.round((count / totalSubmissions) * 100) : 0,
+        color: colors[index % colors.length]
+      }))
+        .sort((a, b) => b.count - a.count);
     } catch (error) {
       console.error('Error fetching genre distribution:', error);
       throw new Error('Failed to fetch genre distribution');
