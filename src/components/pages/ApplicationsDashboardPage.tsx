@@ -8,6 +8,7 @@ import { DashboardStats, GenreStats, CountryStats } from '../../types/admin.type
 // Components
 import AdminZoneHeader from '../layout/AdminZoneHeader';
 import DashboardStatCard from '../ui/DashboardStatsCard';
+import CategoryBannerCard from '../ui/CategoryBannerCard';
 import GenreDistributionChart from '../charts/GenreDistributionChart';
 import CountryDistributionChart from '../charts/CountryDistributionChart';
 import ApplicationTrendsChart from '../charts/ApplicationTrendsChart';
@@ -114,6 +115,14 @@ const ApplicationsDashboardPage: React.FC<ApplicationsDashboardPageProps> = ({ o
       pageTitle: "แดชบอร์ดใบสมัคร",
       subtitle: "ภาพรวมและสถิติการสมัครเข้าประกวดภาพยนตร์",
       
+      // Category banners
+      youthCategory: "การประกวดเยาวชน",
+      youthSubtitle: "นักเรียนมัธยมศึกษา (อายุ 12-18 ปี)",
+      futureCategory: "การประกวดอนาคต",
+      futureSubtitle: "นักศึกษาอุดมศึกษา (อายุ 18-25 ปี)", 
+      worldCategory: "การประกวดโลก",
+      worldSubtitle: "ประชาชนทั่วไป (อายุ 20+ ปี)",
+      
       // Stats cards
       totalApplications: "ใบสมัครทั้งหมด",
       totalApplicationsSubtitle: "ใบสมัครเข้าประกวดทั้งหมด",
@@ -140,6 +149,14 @@ const ApplicationsDashboardPage: React.FC<ApplicationsDashboardPageProps> = ({ o
       pageTitle: "Applications Dashboard",
       subtitle: "Overview and statistics of film competition submissions",
       
+      // Category banners
+      youthCategory: "Youth Competition",
+      youthSubtitle: "High school students (Age 12-18)",
+      futureCategory: "Future Competition", 
+      futureSubtitle: "University students (Age 18-25)",
+      worldCategory: "World Competition",
+      worldSubtitle: "General public (Age 20+)",
+      
       // Stats cards
       totalApplications: "Total Applications",
       totalApplicationsSubtitle: "All competition submissions",
@@ -165,6 +182,43 @@ const ApplicationsDashboardPage: React.FC<ApplicationsDashboardPageProps> = ({ o
   };
 
   const currentContent = content[currentLanguage];
+
+  // Calculate category data for banners
+  const getCategoryData = () => {
+    const totalApps = stats.totalApplications;
+    
+    return [
+      {
+        category: 'youth' as const,
+        title: currentContent.youthCategory,
+        subtitle: currentContent.youthSubtitle,
+        count: stats.applicationsByCategory.youth.submitted + stats.applicationsByCategory.youth.draft,
+        percentage: totalApps > 0 ? Math.round(((stats.applicationsByCategory.youth.submitted + stats.applicationsByCategory.youth.draft) / totalApps) * 100) : 0,
+        trend: { value: 12, isPositive: true },
+        logo: "https://firebasestorage.googleapis.com/v0/b/cifan-c41c6.firebasestorage.app/o/site_files%2Ffest_logos%2FGroup%202.png?alt=media&token=e8be419f-f0b2-4f64-8d7f-c3e8532e2689"
+      },
+      {
+        category: 'future' as const,
+        title: currentContent.futureCategory,
+        subtitle: currentContent.futureSubtitle,
+        count: stats.applicationsByCategory.future.submitted + stats.applicationsByCategory.future.draft,
+        percentage: totalApps > 0 ? Math.round(((stats.applicationsByCategory.future.submitted + stats.applicationsByCategory.future.draft) / totalApps) * 100) : 0,
+        trend: { value: 8, isPositive: true },
+        logo: "https://firebasestorage.googleapis.com/v0/b/cifan-c41c6.firebasestorage.app/o/site_files%2Ffest_logos%2FGroup%203.png?alt=media&token=b66cd708-0dc3-4c05-bc56-b2f99a384287"
+      },
+      {
+        category: 'world' as const,
+        title: currentContent.worldCategory,
+        subtitle: currentContent.worldSubtitle,
+        count: stats.applicationsByCategory.world.submitted + stats.applicationsByCategory.world.draft,
+        percentage: totalApps > 0 ? Math.round(((stats.applicationsByCategory.world.submitted + stats.applicationsByCategory.world.draft) / totalApps) * 100) : 0,
+        trend: { value: 15, isPositive: true },
+        logo: "https://firebasestorage.googleapis.com/v0/b/cifan-c41c6.firebasestorage.app/o/site_files%2Ffest_logos%2FGroup%204.png?alt=media&token=84ad0256-2322-4999-8e9f-d2f30c7afa67"
+      }
+    ];
+  };
+
+  const categoryData = getCategoryData();
 
   // Loading State
   if (loading) {
@@ -215,6 +269,26 @@ const ApplicationsDashboardPage: React.FC<ApplicationsDashboardPageProps> = ({ o
         subtitle={currentContent.subtitle}
         onSidebarToggle={onSidebarToggle || (() => {})}
       />
+
+      {/* Competition Categories Banner - First Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        {categoryData.map((category) => (
+          <CategoryBannerCard
+            key={category.category}
+            category={category.category}
+            title={category.title}
+            subtitle={category.subtitle}
+            count={category.count}
+            percentage={category.percentage}
+            trend={category.trend}
+            logo={category.logo}
+            onClick={() => {
+              // Navigate to filtered gallery view for this category
+              window.location.hash = `#admin/gallery?category=${category.category}`;
+            }}
+          />
+        ))}
+      </div>
 
       {/* Main Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
