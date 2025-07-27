@@ -144,15 +144,15 @@ class AdminSubmissionService {
   async getCountryDistribution(): Promise<CountryStats[]> {
     try {
       const submissionsRef = collection(db, 'submissions');
-      const q = query(submissionsRef, where('status', '==', 'submitted'));
+      const q = query(submissionsRef);
       const snapshot = await getDocs(q);
       
       const countryCount: { [key: string]: number } = {};
       
       snapshot.docs.forEach(doc => {
         const data = doc.data();
-        if (data.country) {
-          countryCount[data.country] = (countryCount[data.country] || 0) + 1;
+        if (data.nationality) {
+          countryCount[data.nationality] = (countryCount[data.nationality] || 0) + 1;
         }
       });
 
@@ -168,6 +168,12 @@ class AdminSubmissionService {
         'Germany': '🇩🇪',
         'France': '🇫🇷',
         'Australia': '🇦🇺',
+        'Singapore': '🇸🇬',
+        'Malaysia': '🇲🇾',
+        'Philippines': '🇵🇭',
+        'Vietnam': '🇻🇳',
+        'Indonesia': '🇮🇩',
+        'Taiwan': '🇹🇼',
         // Add more as needed
       };
 
