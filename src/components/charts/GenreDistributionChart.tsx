@@ -1,7 +1,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useTranslation } from 'react-i18next';
-import { useTypography } from '../../utils/typography';
+import { useResponsiveTypography } from '../../utils/fontSizeUtils';
 import { GenreStats } from '../../types/admin.types';
 import ChartContainer from '../ui/ChartContainer';
 
@@ -15,7 +15,20 @@ const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
   loading = false,
 }) => {
   const { t } = useTranslation();
-  const { getResponsiveFontSize } = useTypography();
+  const { getThaiAdjustedSize } = useResponsiveTypography();
+
+  // Helper function to convert Tailwind class to CSS rem value
+  const tailwindToRem = (tailwindClass: string): string => {
+    const sizeMap: { [key: string]: string } = {
+      'text-xs': '0.75rem',
+      'text-sm': '0.875rem',
+      'text-base': '1rem',
+      'text-lg': '1.125rem',
+      'text-xl': '1.25rem',
+      'text-2xl': '1.5rem',
+    };
+    return sizeMap[tailwindClass] || '0.875rem';
+  };
 
   const COLORS = [
     '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
@@ -88,7 +101,7 @@ const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
             verticalAlign="bottom" 
             height={36}
             formatter={(value, entry: any) => (
-              <span style={{ color: entry.color, fontSize: getResponsiveFontSize('sm') }}>
+              <span style={{ color: entry.color, fontSize: tailwindToRem(getThaiAdjustedSize('text-sm')) }}>
                 {value} ({entry.payload.percentage}%)
               </span>
             )}
