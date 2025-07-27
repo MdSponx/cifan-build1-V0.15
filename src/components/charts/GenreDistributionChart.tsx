@@ -70,6 +70,48 @@ const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
     );
   };
 
+  // Genre count badges below the chart
+  const GenreCountBadges = () => {
+    if (data.length === 0) return null;
+
+    return (
+      <div className="mt-6 pt-4 border-t border-white/20">
+        <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3 text-center`}>
+          {currentLanguage === 'th' ? 'จำนวนตามแนวภาพยนตร์' : 'Count by Genre'}
+        </h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          {data.slice(0, 8).map((genre, index) => (
+            <div 
+              key={index} 
+              className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/10"
+            >
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
+                <div 
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: genre.color }}
+                ></div>
+                <span className={`${getClass('body')} text-white/80 text-xs truncate`}>
+                  {genre.genre}
+                </span>
+              </div>
+              <span className={`${getClass('body')} text-white text-xs font-medium ml-2 flex-shrink-0`}>
+                {genre.count}
+              </span>
+            </div>
+          ))}
+        </div>
+        {data.length > 8 && (
+          <p className={`text-xs ${getClass('body')} text-white/60 text-center mt-2`}>
+            {currentLanguage === 'th' 
+              ? `และอีก ${data.length - 8} แนวอื่นๆ` 
+              : `and ${data.length - 8} more genres`
+            }
+          </p>
+        )}
+      </div>
+    );
+  };
+
   return (
     <ChartContainer
       title={currentContent.title}
@@ -111,6 +153,9 @@ const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
           </div>
         </div>
       )}
+      
+      {/* Genre Count Badges */}
+      <GenreCountBadges />
     </ChartContainer>
   );
 };
