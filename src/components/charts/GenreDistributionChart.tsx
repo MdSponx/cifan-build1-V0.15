@@ -8,8 +8,11 @@ import ChartContainer from '../ui/ChartContainer';
 interface GenreDistributionChartProps {
   data: GenreStats[];
   loading?: boolean;
+}
 
 const GenreDistributionChart: React.FC<GenreDistributionChartProps> = ({
   data,
   loading = false,
+}
+)
 export default GenreDistributionChart;
