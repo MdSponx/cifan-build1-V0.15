@@ -1,9 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useResponsiveTypography } from '../../utils/fontSizeUtils';
 import AnimatedButton from '../ui/AnimatedButton';
 
 const WorkshopsSection = () => {
   const { i18n } = useTranslation();
+  const { getThaiAdjustedSize } = useResponsiveTypography();
   
   // Dynamic typography classes based on language
   const getTypographyClass = (baseClass: string) => {
@@ -100,18 +102,14 @@ const WorkshopsSection = () => {
                 </h3>
                 
                 {/* Activity Description */}
-                <p className={`text-white/70 mb-4 sm:mb-6 leading-relaxed ${getTypographyClass('body')} ${
-                  currentLanguage === 'th' ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
-                } flex-grow`}>
+                <p className={`text-white/70 mb-4 sm:mb-6 leading-relaxed ${getTypographyClass('body')} ${getThaiAdjustedSize('text-sm sm:text-base')} flex-grow`}>
                   {activity.description[currentLanguage]}
                 </p>
 
                 {/* Features List */}
                 <ul className="space-y-1 sm:space-y-2 mb-6 sm:mb-8">
                   {activity.features[currentLanguage].map((feature, idx) => (
-                    <li key={idx} className={`flex items-start text-white/80 ${getTypographyClass('body')} ${
-                      currentLanguage === 'th' ? 'text-xs sm:text-sm' : 'text-xs sm:text-sm'
-                    }`}>
+                    <li key={idx} className={`flex items-start text-white/80 ${getTypographyClass('body')} ${getThaiAdjustedSize('text-xs sm:text-sm')}`}>
                       <span className="text-[#FCB283] mr-3 mt-0.5 flex-shrink-0">✨</span>
                       {feature}
                     </li>
@@ -146,9 +144,7 @@ const WorkshopsSection = () => {
             <h3 className={`text-lg sm:text-xl md:text-2xl ${getTypographyClass('header')} mb-3 sm:mb-4 text-white`}>
               {currentLanguage === 'th' ? 'เข้าร่วมกับเรา' : 'Join Us'}
             </h3>
-            <p className={`text-white/80 mb-4 sm:mb-6 ${getTypographyClass('body')} leading-relaxed ${
-              currentLanguage === 'th' ? 'text-sm sm:text-base' : 'text-sm sm:text-base'
-            }`}>
+            <p className={`text-white/80 mb-4 sm:mb-6 ${getTypographyClass('body')} leading-relaxed ${getThaiAdjustedSize('text-sm sm:text-base')}`}>
               {currentLanguage === 'th' 
                 ? 'ร่วมเป็นส่วนหนึ่งในการพัฒนาอุตสาหกรรมภาพยนตร์ภาคเหนือ พบกับผู้เชี่ยวชาญ เรียนรู้เทคนิคใหม่ๆ และสร้างเครือข่ายที่แข็งแกร่ง'
                 : 'Be part of developing Northern Thailand\'s film industry. Meet experts, learn new techniques, and build strong professional networks.'

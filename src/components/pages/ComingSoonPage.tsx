@@ -1,12 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTypography } from '../../utils/typography';
+import { useResponsiveTypography } from '../../utils/fontSizeUtils';
 import AnimatedButton from '../ui/AnimatedButton';
 import { Facebook, Instagram, Youtube } from 'lucide-react';
 
 const ComingSoonPage = () => {
   const { i18n } = useTranslation();
   const { getClass } = useTypography();
+  const { getThaiAdjustedSize } = useResponsiveTypography();
   const currentLanguage = i18n.language as 'en' | 'th';
 
   const content = {
@@ -59,13 +61,13 @@ const ComingSoonPage = () => {
 
           {/* Coming Soon Text with Animation */}
           <div className="mb-8 sm:mb-12">
-            <h1 className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl ${getClass('header')} text-white mb-4 sm:mb-6 animate-coming-soon-pulse`}>
+            <h1 className={`${getThaiAdjustedSize('text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl')} ${getClass('header')} text-white mb-4 sm:mb-6 animate-coming-soon-pulse`}>
               {currentContent.comingSoon}
             </h1>
-            <h2 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl ${getClass('subtitle')} text-white/90 mb-6 sm:mb-8 animate-fade-in-up`} style={{ animationDelay: '0.5s' }}>
+            <h2 className={`${getThaiAdjustedSize('text-lg sm:text-xl md:text-2xl lg:text-3xl')} ${getClass('subtitle')} text-white/90 mb-6 sm:mb-8 animate-fade-in-up`} style={{ animationDelay: '0.5s' }}>
               {currentContent.subtitle}
             </h2>
-            <p className={`text-base sm:text-lg md:text-xl ${getClass('body')} text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in-up`} style={{ animationDelay: '1s' }}>
+            <p className={`${getThaiAdjustedSize('text-base sm:text-lg md:text-xl')} ${getClass('body')} text-white/80 max-w-2xl mx-auto leading-relaxed animate-fade-in-up`} style={{ animationDelay: '1s' }}>
               {currentContent.description}
             </p>
           </div>
@@ -93,7 +95,7 @@ const ComingSoonPage = () => {
 
             {/* Stay Tuned Section */}
             <div className="border-t border-white/20 pt-6 sm:pt-8">
-              <p className={`text-white/70 ${getClass('body')} mb-4 text-sm sm:text-base`}>
+              <p className={`text-white/70 ${getClass('body')} mb-4 ${getThaiAdjustedSize('text-sm sm:text-base')}`}>
                 {currentContent.stayTuned}
               </p>
               

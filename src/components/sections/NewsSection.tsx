@@ -1,9 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useResponsiveTypography } from '../../utils/fontSizeUtils';
 import AnimatedButton from '../ui/AnimatedButton';
 
 const NewsSection = () => {
   const { i18n } = useTranslation();
+  const { getThaiAdjustedSize } = useResponsiveTypography();
   
   // Dynamic typography classes based on language
   const getTypographyClass = (baseClass: string) => {
@@ -123,9 +125,7 @@ const NewsSection = () => {
                 <h3 className={`text-lg sm:text-xl ${getTypographyClass('subtitle')} mb-3 text-white leading-tight`}>
                   {item.title[currentLanguage]}
                 </h3>
-                <p className={`text-white/70 mb-4 leading-relaxed ${getTypographyClass('body')} ${
-                  currentLanguage === 'th' ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
-                }`}>
+                <p className={`text-white/70 mb-4 leading-relaxed ${getTypographyClass('body')} ${getThaiAdjustedSize('text-sm sm:text-base')}`}>
                   {item.excerpt[currentLanguage]}
                 </p>
                 <button className={`text-[#FCB283] ${getTypographyClass('menu')} hover:text-white transition-colors text-sm`}>

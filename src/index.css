@@ -4,58 +4,63 @@
 
 /* Typography Classes */
 .nav-en {
-  font-family: 'Oswald', sans-serif;
-  font-weight: 300;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 400;
 }
 
 .nav-th {
   font-family: 'Anuphan', sans-serif !important;
   font-weight: 300;
+  font-size: 1.05em; /* 5% larger than default */
 }
 
 .header-en {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Raleway', sans-serif;
   font-weight: 600;
 }
 
 .header-th {
   font-family: 'Anuphan', sans-serif;
   font-weight: 600;
+  font-size: 1.15em; /* 15% larger than default */
 }
 
 .subtitle-en {
-  font-family: 'Oswald', sans-serif;
-  font-weight: 300;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 400;
 }
 
 .subtitle-th {
   font-family: 'Anuphan', sans-serif;
   font-weight: 200;
+  font-size: 1.1em; /* 10% larger than default */
 }
 
 .body-en {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Raleway', sans-serif;
   font-weight: 400;
 }
 
 .body-th {
   font-family: 'Anuphan', sans-serif;
   font-weight: 400;
+  font-size: 1.08em; /* 8% larger than default */
 }
 
 .menu-en {
-  font-family: 'Oswald', sans-serif;
-  font-weight: 200;
+  font-family: 'Raleway', sans-serif;
+  font-weight: 300;
 }
 
 .menu-th {
   font-family: 'Anuphan', sans-serif;
   font-weight: 200;
+  font-size: 1.05em; /* 5% larger than default */
 }
 
-/* Navigation Font - Oswald Medium 500 */
+/* Navigation Font - Raleway Medium 500 */
 .nav-font {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Raleway', sans-serif;
   font-weight: 500;
 }
 
@@ -271,7 +276,7 @@ form {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Raleway', sans-serif;
   font-weight: 300;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.9);
@@ -333,7 +338,7 @@ form {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Raleway', sans-serif;
   font-weight: 300;
   font-size: 14px;
   color: rgba(255, 255, 255, 0.9);
@@ -858,7 +863,7 @@ html {
 }
 
 .chart-content .recharts-wrapper {
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Raleway', sans-serif;
 }
 
 .chart-content .recharts-cartesian-grid-horizontal line {

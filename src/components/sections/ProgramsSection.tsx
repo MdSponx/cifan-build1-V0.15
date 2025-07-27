@@ -1,8 +1,10 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useResponsiveTypography } from '../../utils/fontSizeUtils';
 
 const ProgramsSection = () => {
   const { i18n } = useTranslation();
+  const { getThaiAdjustedSize } = useResponsiveTypography();
 
   const programs = [
     {
@@ -171,6 +173,7 @@ const ProgramCard = ({ program, index, currentLanguage }: {
   currentLanguage: 'en' | 'th' 
 }) => {
   const { i18n } = useTranslation();
+  const { getThaiAdjustedSize } = useResponsiveTypography();
   
   // Dynamic typography classes based on language
   const getTypographyClass = (baseClass: string) => {
@@ -192,9 +195,7 @@ const ProgramCard = ({ program, index, currentLanguage }: {
         <h3 className={`text-lg sm:text-xl md:text-2xl ${getTypographyClass('header')} mb-3 text-white group-hover:text-[#FCB283] transition-colors text-center`}>
           {program.title[currentLanguage]}
         </h3>
-        <p className={`text-white/70 mb-4 sm:mb-6 leading-relaxed ${getTypographyClass('body')} text-center ${
-          currentLanguage === 'th' ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
-        }`}>
+        <p className={`text-white/70 mb-4 sm:mb-6 leading-relaxed ${getTypographyClass('body')} text-center ${getThaiAdjustedSize('text-sm sm:text-base')}`}>
           {program.description[currentLanguage]}
         </p>
 
@@ -215,9 +216,7 @@ const ProgramCard = ({ program, index, currentLanguage }: {
                 }, 100);
               }
             }}
-            className={`w-full glass-button-secondary py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-300 hover:bg-white/20 ${getTypographyClass('menu')} ${
-          currentLanguage === 'th' ? 'text-xs sm:text-sm font-medium' : 'text-sm sm:text-base font-medium'
-          }`}>
+            className={`w-full glass-button-secondary py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-300 hover:bg-white/20 ${getTypographyClass('menu')} ${getThaiAdjustedSize('text-sm sm:text-base')} font-medium`}>
             {program.buttonText[currentLanguage]}
           </button>
         </div>
