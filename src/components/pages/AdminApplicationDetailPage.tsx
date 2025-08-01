@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTypography } from '../../utils/typography';
 import { useAuth } from '../auth/AuthContext';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
 import ExportService from '../../services/exportService';
 import { useNotificationHelpers } from '../ui/NotificationSystem';
 import { doc, getDoc } from 'firebase/firestore';
@@ -41,7 +43,7 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  // Mock data loading - replace with actual API calls
+  // Real Firestore data loading
   useEffect(() => {
     const loadApplication = async () => {
       if (!applicationId) {
@@ -51,89 +53,78 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
       }
 
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Fetch real application data from Firestore
+        const docRef = doc(db, 'submissions', applicationId);
+        const docSnap = await getDoc(docRef);
         
-        // Mock application data
-        const mockApplication: AdminApplicationData = {
-          id: applicationId,
-          userId: 'user_123',
-          applicationId: applicationId,
-          competitionCategory: 'future',
-          status: 'submitted',
-          filmTitle: 'Digital Dreams of Chiang Mai',
-          filmTitleTh: 'ความฝันดิจิทัลของเชียงใหม่',
-          genres: ['Sci-Fi', 'Fantasy'],
-          format: 'live-action',
-          duration: 8,
-          synopsis: 'A young programmer discovers an ancient algorithm hidden in Chiang Mai\'s digital infrastructure that can predict and alter the city\'s future. As she delves deeper into this mysterious code, she must choose between technological advancement and preserving the city\'s cultural heritage.',
-          chiangmaiConnection: 'The film explores the intersection of Chiang Mai\'s rich cultural heritage with its emerging role as a technology hub in Northern Thailand.',
+        if (!docSnap.exists()) {
+          setError(currentLanguage === 'th' ? 'ไม่พบใบสมัครที่ระบุ' : 'Application not found');
+          return;
+        }
+        
+        const data = docSnap.data();
+        
+        // Map Firestore data to AdminApplicationData type
+        const realApplication: AdminApplicationData = {
+          id: docSnap.id,
+          userId: data.userId || '',
+          applicationId: data.applicationId || docSnap.id,
+          competitionCategory: data.competitionCategory || data.category || 'youth',
+          status: data.status || 'draft',
+          filmTitle: data.filmTitle || 'Untitled',
+          filmTitleTh: data.filmTitleTh,
+          genres: data.genres || [],
+          format: data.format || 'live-action',
+          duration: data.duration || 0,
+          synopsis: data.synopsis || '',
+          chiangmaiConnection: data.chiangmaiConnection,
           
-          submitterName: 'Ploy Futuristic',
-          submitterNameTh: 'พลอย ฟิวเจอริสติก',
-          submitterAge: 22,
-          submitterPhone: '+66 89-123-4567',
-          submitterEmail: 'ploy.future@email.com',
-          submitterRole: 'Director',
+          // Submitter/Director data (handle both youth/future and world categories)
+          submitterName: data.submitterName || data.directorName || '',
+          submitterNameTh: data.submitterNameTh || data.directorNameTh,
+          submitterAge: data.submitterAge || data.directorAge,
+          submitterPhone: data.submitterPhone || data.directorPhone || '',
+          submitterEmail: data.submitterEmail || data.directorEmail || '',
+          submitterRole: data.submitterRole || data.directorRole || '',
           
+          // Files with proper fallback handling
           files: {
             filmFile: {
-              url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-              name: 'digital_dreams_final.mp4',
-              size: 245760000
+              url: data.files?.filmFile?.downloadURL || data.files?.filmFile?.url || '',
+              name: data.files?.filmFile?.fileName || data.files?.filmFile?.name || 'Film file',
+              size: data.files?.filmFile?.fileSize || data.files?.filmFile?.size || 0
             },
             posterFile: {
-              url: 'https://picsum.photos/600/800?random=1',
-              name: 'digital_dreams_poster.jpg',
-              size: 2048000
+              url: data.files?.posterFile?.downloadURL || data.files?.posterFile?.url || '',
+              name: data.files?.posterFile?.fileName || data.files?.posterFile?.name || 'Poster file',
+              size: data.files?.posterFile?.fileSize || data.files?.posterFile?.size || 0
             },
-            proofFile: {
-              url: 'https://picsum.photos/800/600?random=2',
-              name: 'student_id.jpg',
-              size: 1024000
-            }
+            proofFile: data.files?.proofFile ? {
+              url: data.files?.proofFile?.downloadURL || data.files?.proofFile?.url || '',
+              name: data.files?.proofFile?.fileName || data.files?.proofFile?.name || 'Proof file',
+              size: data.files?.proofFile?.fileSize || data.files?.proofFile?.size || 0
+            } : undefined
           },
           
-          // Admin-specific data
-          scores: [
-            {
-              technical: 8,
-              story: 7,
-              creativity: 9,
-              overall: 8,
-              totalScore: 32,
-              adminId: 'admin_1',
-              adminName: 'Dr. Sarah Johnson',
-              scoredAt: new Date('2025-01-15'),
-              comments: 'Excellent technical execution with innovative use of visual effects. The story effectively balances technology and tradition.'
-            },
-            {
-              technical: 7,
-              story: 8,
-              creativity: 8,
-              overall: 7,
-              totalScore: 30,
-              adminId: 'admin_2',
-              adminName: 'Prof. Somchai Techno',
-              scoredAt: new Date('2025-01-16'),
-              comments: 'Strong narrative structure and compelling character development. Good representation of Chiang Mai\'s cultural elements.'
-            }
-          ],
-          adminNotes: 'Promising submission with strong technical merit. Consider for final round selection.',
-          reviewStatus: 'in-progress',
-          flagged: false,
-          assignedReviewers: ['admin_1', 'admin_2', user?.uid || 'admin_3'],
+          // Admin-specific data (initialize with defaults if not present)
+          scores: data.scores || [],
+          adminNotes: data.adminNotes || '',
+          reviewStatus: data.reviewStatus || 'pending',
+          flagged: data.flagged || false,
+          flagReason: data.flagReason,
+          assignedReviewers: data.assignedReviewers || [],
           
-          submittedAt: new Date('2025-01-10'),
-          createdAt: new Date('2025-01-08'),
-          lastModified: new Date('2025-01-16'),
-          lastReviewedAt: new Date('2025-01-16')
+          // Timestamps
+          submittedAt: data.submittedAt?.toDate(),
+          createdAt: data.createdAt?.toDate() || new Date(),
+          lastModified: data.lastModified?.toDate() || new Date(),
+          lastReviewedAt: data.lastReviewedAt?.toDate()
         };
 
-        setApplication(mockApplication);
+        setApplication(realApplication);
         
         // Check if current user has already scored
-        const userScore = mockApplication.scores.find(score => score.adminId === user?.uid);
+        const userScore = realApplication.scores.find(score => score.adminId === user?.uid);
         if (userScore) {
           setCurrentScores(userScore);
         }
@@ -183,8 +174,28 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
   const handleSaveScores = async (scores: ScoringCriteria) => {
     setIsSubmittingScore(true);
     try {
-      // TODO: Implement actual score saving
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Update scores in Firestore
+      const docRef = doc(db, 'submissions', applicationId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        const currentData = docSnap.data();
+        const currentScores = currentData.scores || [];
+        
+        // Remove existing score from this admin and add new one
+        const updatedScores = currentScores.filter((score: any) => score.adminId !== user?.uid);
+        updatedScores.push({
+          ...scores,
+          scoredAt: new Date()
+        });
+        
+        // Update document
+        await updateDoc(docRef, {
+          scores: updatedScores,
+          lastReviewedAt: new Date(),
+          lastModified: new Date()
+        });
+      }
       
       // Update local state
       if (application) {
@@ -198,10 +209,16 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
         } : null);
       }
       
-      alert(currentLanguage === 'th' ? 'บันทึกคะแนนเรียบร้อย' : 'Scores saved successfully');
+      showSuccess(
+        currentLanguage === 'th' ? 'บันทึกคะแนนเรียบร้อย' : 'Scores saved successfully',
+        currentLanguage === 'th' ? 'คะแนนของคุณได้รับการบันทึกแล้ว' : 'Your scores have been saved'
+      );
     } catch (error) {
       console.error('Error saving scores:', error);
-      alert(currentLanguage === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : 'Error saving scores');
+      showError(
+        currentLanguage === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : 'Error saving scores',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     } finally {
       setIsSubmittingScore(false);
     }
@@ -210,14 +227,26 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
   const handleStatusChange = async (status: AdminApplicationData['reviewStatus']) => {
     setIsUpdatingStatus(true);
     try {
-      // TODO: Implement actual status update
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Update status in Firestore
+      const docRef = doc(db, 'submissions', applicationId);
+      await updateDoc(docRef, {
+        reviewStatus: status,
+        lastReviewedAt: new Date(),
+        lastModified: new Date()
+      });
       
       setApplication(prev => prev ? { ...prev, reviewStatus: status } : null);
-      alert(currentLanguage === 'th' ? 'อัปเดตสถานะเรียบร้อย' : 'Status updated successfully');
+      
+      showSuccess(
+        currentLanguage === 'th' ? 'อัปเดตสถานะเรียบร้อย' : 'Status updated successfully',
+        currentLanguage === 'th' ? 'สถานะใบสมัครได้รับการอัปเดตแล้ว' : 'Application status has been updated'
+      );
     } catch (error) {
       console.error('Error updating status:', error);
-      alert(currentLanguage === 'th' ? 'เกิดข้อผิดพลาดในการอัปเดต' : 'Error updating status');
+      showError(
+        currentLanguage === 'th' ? 'เกิดข้อผิดพลาดในการอัปเดต' : 'Error updating status',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -225,21 +254,43 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
 
   const handleNotesChange = async (notes: string) => {
     try {
-      // TODO: Implement actual notes update
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Update admin notes in Firestore
+      const docRef = doc(db, 'submissions', applicationId);
+      await updateDoc(docRef, {
+        adminNotes: notes,
+        lastModified: new Date()
+      });
       
       setApplication(prev => prev ? { ...prev, adminNotes: notes } : null);
-      alert(currentLanguage === 'th' ? 'บันทึกหมายเหตุเรียบร้อย' : 'Notes saved successfully');
+      
+      showSuccess(
+        currentLanguage === 'th' ? 'บันทึกหมายเหตุเรียบร้อย' : 'Notes saved successfully'
+      );
     } catch (error) {
       console.error('Error saving notes:', error);
-      alert(currentLanguage === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : 'Error saving notes');
+      showError(
+        currentLanguage === 'th' ? 'เกิดข้อผิดพลาดในการบันทึก' : 'Error saving notes',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     }
   };
 
   const handleFlagToggle = async (flagged: boolean, reason?: string) => {
     try {
-      // TODO: Implement actual flag toggle
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Update flag status in Firestore
+      const docRef = doc(db, 'submissions', applicationId);
+      const updateData: any = {
+        flagged,
+        lastModified: new Date()
+      };
+      
+      if (flagged && reason) {
+        updateData.flagReason = reason;
+      } else if (!flagged) {
+        updateData.flagReason = null;
+      }
+      
+      await updateDoc(docRef, updateData);
       
       setApplication(prev => prev ? { 
         ...prev, 
@@ -251,10 +302,13 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
         ? (currentLanguage === 'th' ? 'ตั้งค่าสถานะพิเศษเรียบร้อย' : 'Application flagged successfully')
         : (currentLanguage === 'th' ? 'ยกเลิกสถานะพิเศษเรียบร้อย' : 'Application unflagged successfully');
       
-      alert(message);
+      showSuccess(message);
     } catch (error) {
       console.error('Error toggling flag:', error);
-      alert(currentLanguage === 'th' ? 'เกิดข้อผิดพลาด' : 'Error updating flag status');
+      showError(
+        currentLanguage === 'th' ? 'เกิดข้อผิดพลาด' : 'Error updating flag status',
+        error instanceof Error ? error.message : 'Unknown error occurred'
+      );
     }
   };
 
