@@ -6,8 +6,6 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import ExportService from '../../services/exportService';
 import { useNotificationHelpers } from '../ui/NotificationSystem';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
 import { AdminApplicationData, ScoringCriteria } from '../../types/admin.types';
 import AdminZoneHeader from '../layout/AdminZoneHeader';
 import VideoScoringPanel from '../admin/VideoScoringPanel';
