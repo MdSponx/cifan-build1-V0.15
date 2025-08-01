@@ -81,8 +81,15 @@ const AdminApplicationCard: React.FC<AdminApplicationCardProps> = ({
     ? application.directorNameTh 
     : application.directorName;
 
+  // Handle card click to navigate to detail page
+  const handleCardClick = () => {
+    onView(application.id);
+  };
   return (
-    <div className={`group cursor-pointer relative ${isSelected ? 'ring-2 ring-[#FCB283]' : ''}`}>
+    <div 
+      className={`group cursor-pointer relative ${isSelected ? 'ring-2 ring-[#FCB283]' : ''}`}
+      onClick={handleCardClick}
+    >
       {/* Bulk Selection Checkbox */}
       {showBulkSelect && (
         <div className="absolute top-2 left-2 z-20">
