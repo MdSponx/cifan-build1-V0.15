@@ -185,6 +185,19 @@ function App() {
             </ProtectedRoute>
           );
         }
+        // Handle admin application detail page with dynamic ID (new route pattern)
+        if (currentPage.startsWith('admin/application-detail/')) {
+          const applicationId = currentPage.replace('admin/application-detail/', '');
+          return (
+            <ProtectedRoute requireEmailVerification={true} requireProfileComplete={false}>
+              <AdminProtectedRoute>
+                <AdminZoneLayout currentPage="admin/application-detail">
+                  <AdminApplicationDetailPage applicationId={applicationId} />
+                </AdminZoneLayout>
+              </AdminProtectedRoute>
+            </ProtectedRoute>
+          );
+        }
         return (
           <>
             <OneHeroSection />
