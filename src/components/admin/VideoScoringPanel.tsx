@@ -298,7 +298,7 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
                     {score.adminName}
                   </p>
                   <p className={`${getClass('body')} text-white/60 text-xs`}>
-                    {score.scoredAt.toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
+                    {new Date(score.scoredAt).toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
                   </p>
                 </div>
                 <div className="text-right">
