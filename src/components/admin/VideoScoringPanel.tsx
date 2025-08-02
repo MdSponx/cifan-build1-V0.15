@@ -37,7 +37,6 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
       technical: "คุณภาพทางเทคนิค",
       story: "เรื่องราวและการเล่าเรื่อง",
       creativity: "ความคิดสร้างสรรค์และความเป็นต้นฉบับ",
-      chiangmai: "ความเกี่ยวข้องกับเชียงใหม่",
       overall: "ความประทับใจโดยรวม",
       totalScore: "คะแนนรวม",
       comments: "ความคิดเห็นเพิ่มเติม",
@@ -61,7 +60,6 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
       technical: "Technical Quality",
       story: "Story & Narrative",
       creativity: "Creativity & Originality",
-      chiangmai: "Connection to Chiang Mai",
       overall: "Overall Impact",
       totalScore: "Total Score",
       comments: "Additional Comments",
@@ -87,13 +85,11 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
     { key: 'technical', label: currentContent.technical, icon: '🎬' },
     { key: 'story', label: currentContent.story, icon: '📖' },
     { key: 'creativity', label: currentContent.creativity, icon: '✨' },
-    { key: 'chiangmai', label: currentContent.chiangmai, icon: '🏔️' },
     { key: 'overall', label: currentContent.overall, icon: '🎯' }
   ];
 
   // Calculate total score
-  const totalScore = (scores.technical || 0) + (scores.story || 0) + (scores.creativity || 0) + (scores.chiangmai || 0) + (scores.overall || 0);
-  const totalPercentage = Math.round((totalScore / 50) * 100);
+  const totalScore = (scores.technical || 0) + (scores.story || 0) + (scores.creativity || 0) + (scores.overall || 0);
 
   // Calculate average from all scores
   const averageScore = allScores.length > 0 
@@ -105,7 +101,6 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
       scores.technical !== (currentScores?.technical || 0) ||
       scores.story !== (currentScores?.story || 0) ||
       scores.creativity !== (currentScores?.creativity || 0) ||
-      scores.chiangmai !== (currentScores?.chiangmai || 0) ||
       scores.overall !== (currentScores?.overall || 0) ||
       scores.comments !== (currentScores?.comments || '');
     
@@ -128,7 +123,6 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
       technical: scores.technical || 0,
       story: scores.story || 0,
       creativity: scores.creativity || 0,
-      chiangmai: scores.chiangmai || 0,
       overall: scores.overall || 0,
       totalScore,
       adminId: user.uid,
@@ -146,8 +140,6 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
       technical: 0,
       story: 0,
       creativity: 0,
-      chiangmai: 0,
-      chiangmai: currentScores?.chiangmai || 0,
       overall: 0,
       comments: ''
     });
@@ -215,7 +207,7 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
         {/* Total Score Display */}
         <div className="text-center">
           <div className={`text-3xl ${getClass('header')} ${getScoreColor(totalScore / 4)} mb-1`}>
-            {totalScore}/50 ({totalPercentage}%)
+            {totalScore}/40
           </div>
           <p className={`text-xs ${getClass('body')} text-white/60`}>
             {currentContent.totalScore}
@@ -278,8 +270,8 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Average Score */}
             <div className="glass-card p-4 rounded-xl text-center">
-              <div className={`text-2xl ${getClass('header')} ${getScoreColor(averageScore / 5)} mb-2`}>
-                {averageScore.toFixed(1)}/50 ({Math.round((averageScore / 50) * 100)}%)
+              <div className={`text-2xl ${getClass('header')} ${getScoreColor(averageScore / 4)} mb-2`}>
+                {averageScore.toFixed(1)}/40
               </div>
               <p className={`text-sm ${getClass('body')} text-white/80`}>
                 {currentContent.averageScore}
@@ -314,7 +306,7 @@ const VideoScoringPanel: React.FC<VideoScoringPanelProps> = ({
                     {score.totalScore}/40
                   </p>
                   <p className={`${getClass('body')} text-white/60 text-xs`}>
-                    T:{score.technical} S:{score.story} C:{score.creativity} CM:{score.chiangmai} O:{score.overall}
+                    T:{score.technical} S:{score.story} C:{score.creativity} O:{score.overall}
                   </p>
                 </div>
               </div>

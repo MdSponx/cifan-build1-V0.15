@@ -244,9 +244,8 @@ export interface ScoringCriteria {
   technical: number;      // 1-10
   story: number;         // 1-10  
   creativity: number;    // 1-10
-  chiangmai: number;     // 1-10
   overall: number;       // 1-10
-  totalScore: number;    // calculated (0-50)
+  totalScore: number;    // calculated
   adminId: string;
   adminName: string;
   scoredAt: Date;
