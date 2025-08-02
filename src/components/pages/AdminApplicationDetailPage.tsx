@@ -35,7 +35,8 @@ import {
   Copy,
   CheckCircle,
   AlertTriangle,
-  XCircle
+  XCircle,
+  MessageSquare
 } from 'lucide-react';
 
 interface AdminApplicationDetailPageProps {
@@ -286,7 +287,21 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
       averageScore: "คะแนนเฉลี่ย",
       totalScores: "จำนวนผู้ตัดสิน",
       lastReviewed: "ตรวจสอบล่าสุด",
-      flagged: "ตั้งค่าสถานะพิเศษ"
+      flagged: "ตั้งค่าสถานะพิเศษ",
+      
+      // Comments
+      adminComments: "ความคิดเห็นผู้ดูแล",
+      noComments: "ยังไม่มีความคิดเห็น",
+      addCommentPlaceholder: "เขียนความคิดเห็น...",
+      addComment: "เพิ่มความคิดเห็น",
+      submitting: "กำลังบันทึก...",
+      
+      // Scoring
+      quickScoring: "ให้คะแนนด่วน",
+      totalScore: "คะแนนรวม",
+      submitScore: "บันทึกคะแนน",
+      scoreHistory: "ประวัติคะแนน",
+      noScores: "ยังไม่มีคะแนน"
     },
     en: {
       pageTitle: "Application Details",
@@ -366,7 +381,21 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
       averageScore: "Average Score",
       totalScores: "Total Judges",
       lastReviewed: "Last Reviewed",
-      flagged: "Flagged"
+      flagged: "Flagged",
+      
+      // Comments
+      adminComments: "Admin Comments",
+      noComments: "No comments yet",
+      addCommentPlaceholder: "Write a comment...",
+      addComment: "Add Comment",
+      submitting: "Saving...",
+      
+      // Scoring
+      quickScoring: "Quick Scoring",
+      totalScore: "Total Score",
+      submitScore: "Submit Score",
+      scoreHistory: "Score History",
+      noScores: "No scores yet"
     }
   };
 
@@ -539,7 +568,7 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
     setCurrentScores(scores);
   };
 
-  const handleSaveScores = async (scores: ScoringCriteria) => {
+  const handleSaveScore = async (scores: ScoringCriteria) => {
     setIsSubmittingScore(true);
     try {
       const docRef = doc(db, 'submissions', applicationId);
@@ -1104,138 +1133,78 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
             </div>
 
             {/* Admin Comments Section */}
-            <div className="glass-card p-6 rounded-xl">
+            <div className="mt-6">
               <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
-                <span>💬</span>
-                <span>{currentLanguage === 'th' ? 'ความคิดเห็นผู้ดูแล' : 'Admin Comments'}</span>
+                <MessageSquare className="w-5 h-5 text-[#FCB283]" />
+                <span>{currentContent.adminComments}</span>
               </h4>
               
               {/* Existing Comments */}
-              <div className="max-h-40 overflow-y-auto mb-4 space-y-3">
+              <div className="space-y-3 mb-4 max-h-40 overflow-y-auto">
                 {application.scores && application.scores.length > 0 ? (
-                  application.scores
-                    .filter(score => score.comments && score.comments.trim())
-                    .map((score, index) => (
-                      <div key={index} className="bg-white/5 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`${getClass('body')} text-white text-sm font-medium`}>
-                            {score.adminName}
-                          </span>
-                          <div className="flex items-center space-x-2">
-                            <span className={`${getClass('body')} text-[#FCB283] text-sm`}>
-                              {score.totalScore}/40
-                            </span>
-                            <span className={`${getClass('body')} text-white/60 text-xs`}>
-                              {new Date(score.scoredAt).toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
-                            </span>
-                          </div>
-                        </div>
+                  application.scores.map((score, index) => (
+                    <div key={index} className="glass-card p-3 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={`${getClass('body')} text-white font-medium text-sm`}>
+                          {score.adminName}
+                        </span>
+                        <span className={`${getClass('body')} text-white/60 text-xs`}>
+                          {new Date(score.scoredAt).toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
+                        </span>
+                      </div>
+                      {score.comments && (
                         <p className={`${getClass('body')} text-white/80 text-sm`}>
                           {score.comments}
                         </p>
+                      )}
+                      <div className="flex items-center space-x-2 mt-2">
+                        <Star className="w-4 h-4 text-[#FCB283] fill-current" />
+                        <span className={`${getClass('body')} text-[#FCB283] text-sm font-medium`}>
+                          {score.totalScore}/40
+                        </span>
                       </div>
-                    ))
+                    </div>
+                  ))
                 ) : (
                   <p className={`${getClass('body')} text-white/60 text-sm text-center py-4`}>
-                    {currentLanguage === 'th' ? 'ยังไม่มีความคิดเห็น' : 'No comments yet'}
+                    {currentContent.noComments}
                   </p>
                 )}
               </div>
-
+              
               {/* New Comment Input */}
               <div className="space-y-3">
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={currentLanguage === 'th' ? 'เขียนความคิดเห็น...' : 'Write a comment...'}
+                  placeholder={currentContent.addCommentPlaceholder}
                   rows={3}
                   className="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-[#FCB283] focus:outline-none resize-vertical"
                 />
                 <button
                   onClick={handleAddComment}
                   disabled={!newComment.trim() || isSubmitting}
-                  className="px-4 py-2 bg-[#FCB283] hover:bg-[#AA4626] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors text-sm"
+                  className="px-4 py-2 bg-[#FCB283] hover:bg-[#AA4626] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors"
                 >
-                  {isSubmitting 
-                    ? (currentLanguage === 'th' ? 'กำลังบันทึก...' : 'Saving...') 
-                    : (currentLanguage === 'th' ? 'เพิ่มความคิดเห็น' : 'Add Comment')
-                  }
+                  {isSubmitting ? currentContent.submitting : currentContent.addComment}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Quick Scoring Panel - 1/3 width */}
+          {/* Video Scoring Panel - Right Side */}
           <div className="xl:col-span-1">
-            <div className="glass-card p-6 rounded-xl sticky top-8">
-              <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
-                <span>⭐</span>
-                <span>{currentLanguage === 'th' ? 'ให้คะแนนด่วน' : 'Quick Score'}</span>
-              </h4>
-              
-              {/* Quick Score Input */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className={`block text-white/90 ${getClass('body')} mb-2 text-sm`}>
-                    {currentLanguage === 'th' ? 'คะแนนรวม (0-40)' : 'Total Score (0-40)'}
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="40"
-                    value={quickScore}
-                    onChange={(e) => setQuickScore(parseInt(e.target.value) || 0)}
-                    className="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white focus:border-[#FCB283] focus:outline-none text-center text-xl font-bold"
-                  />
-                </div>
-                
-                <button
-                  onClick={handleQuickScore}
-                  disabled={quickScore < 0 || quickScore > 40 || isSubmitting}
-                  className="w-full px-4 py-3 bg-[#FCB283] hover:bg-[#AA4626] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors font-medium"
-                >
-                  {isSubmitting 
-                    ? (currentLanguage === 'th' ? 'กำลังบันทึก...' : 'Saving...') 
-                    : (currentLanguage === 'th' ? 'บันทึกคะแนน' : 'Submit Score')
-                  }
-                </button>
-              </div>
-
-              {/* Score History */}
-              <div>
-                <h5 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
-                  {currentLanguage === 'th' ? 'ประวัติคะแนน' : 'Score History'}
-                </h5>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {application.scores && application.scores.length > 0 ? (
-                    application.scores.map((score, index) => (
-                      <div key={index} className="bg-white/5 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className={`${getClass('body')} text-white text-sm font-medium`}>
-                            {score.adminName}
-                          </span>
-                          <span className={`${getClass('body')} text-[#FCB283] text-sm font-bold`}>
-                            {score.totalScore}/40
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className={`${getClass('body')} text-white/60 text-xs`}>
-                            T:{score.technical} S:{score.story} C:{score.creativity} O:{score.overall}
-                          </span>
-                          <span className={`${getClass('body')} text-white/60 text-xs`}>
-                            {new Date(score.scoredAt).toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className={`${getClass('body')} text-white/60 text-sm text-center py-4`}>
-                      {currentLanguage === 'th' ? 'ยังไม่มีคะแนน' : 'No scores yet'}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <VideoScoringPanel
+              applicationId={application.id}
+              currentScores={application.scores?.find(score => score.adminId === user?.uid)}
+              allScores={application.scores || []}
+              onScoreChange={(scores) => {
+                // Handle score changes if needed
+                console.log('Score changed:', scores);
+              }}
+              onSaveScores={handleSaveScore}
+              isSubmitting={isSubmitting}
+            />
           </div>
         </div>
       </div>
