@@ -957,6 +957,11 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
                   <div className={`text-xs ${getClass('body')} text-white/60`}>
                     {currentLanguage === 'th' ? 'แนว' : 'genres'}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 2. Video Player & Scoring Container */}
@@ -1182,31 +1187,31 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
         </div>
 
         {/* Educational Information - Full Width Below */}
-        {(contactInfo.schoolName || contactInfo.universityName || contactInfo.faculty) && (
+        {((contactInfo as any).schoolName || (contactInfo as any).universityName || (contactInfo as any).faculty) && (
           <div className="mt-6 glass-card p-4 rounded-xl">
             <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-4`}>
               {currentLanguage === 'th' ? 'ข้อมูลการศึกษา' : 'Educational Information'}
             </h4>
             <div className="space-y-3">
-              {(contactInfo.schoolName || contactInfo.universityName) && (
+              {((contactInfo as any).schoolName || (contactInfo as any).universityName) && (
                 <InfoRow
                   label={application.competitionCategory === 'youth' 
                     ? (currentLanguage === 'th' ? 'โรงเรียน' : 'School')
                     : (currentLanguage === 'th' ? 'มหาวิทยาลัย' : 'University')
                   }
-                  value={contactInfo.schoolName || contactInfo.universityName}
+                  value={(contactInfo as any).schoolName || (contactInfo as any).universityName}
                 />
               )}
-              {contactInfo.faculty && (
+              {(contactInfo as any).faculty && (
                 <InfoRow
                   label={currentLanguage === 'th' ? 'คณะ' : 'Faculty'}
-                  value={contactInfo.faculty}
+                  value={(contactInfo as any).faculty}
                 />
               )}
-              {(contactInfo.studentId || contactInfo.universityId) && (
+              {((contactInfo as any).studentId || (contactInfo as any).universityId) && (
                 <InfoRow
                   label={currentLanguage === 'th' ? 'รหัสนักเรียน/นักศึกษา' : 'Student ID'}
-                  value={contactInfo.studentId || contactInfo.universityId}
+                  value={(contactInfo as any).studentId || (contactInfo as any).universityId}
                 />
               )}
             </div>
