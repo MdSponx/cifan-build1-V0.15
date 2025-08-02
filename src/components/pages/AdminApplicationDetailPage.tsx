@@ -957,64 +957,6 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
                   <div className={`text-xs ${getClass('body')} text-white/60`}>
                     {currentLanguage === 'th' ? 'แนว' : 'genres'}
                   </div>
-                </div>
-                
-                <div className="glass-card p-3 rounded-lg text-center">
-                  <div className="text-lg font-bold text-[#FCB283]">
-                    {formatDate(application.submittedAt).split(',')[0]}
-                  </div>
-                  <div className={`text-xs ${getClass('body')} text-white/60`}>
-                    {currentLanguage === 'th' ? 'ส่งเมื่อ' : 'submitted'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Genres */}
-              {application.genres.length > 0 && (
-                <div className="mb-6">
-                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-2 flex items-center space-x-2`}>
-                    <span>🎭</span>
-                    <span>{currentLanguage === 'th' ? 'แนวภาพยนตร์' : 'Genres'}</span>
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {application.genres.map((genre, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm"
-                      >
-                        {genre}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Synopsis */}
-              <div className="mb-6">
-                <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3 flex items-center space-x-2`}>
-                  <span>📝</span>
-                  <span>{currentLanguage === 'th' ? 'เรื่องย่อ' : 'Synopsis'}</span>
-                </h4>
-                <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
-                  {application.synopsis}
-                </p>
-              </div>
-
-              {/* Chiang Mai Connection */}
-              {application.chiangmaiConnection && (
-                <div>
-                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3 flex items-center space-x-2`}>
-                    <span>🏔️</span>
-                    <span>{currentLanguage === 'th' ? 'ความเกี่ยวข้องกับเชียงใหม่' : 'Connection to Chiang Mai'}</span>
-                  </h4>
-                  <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
-                    {application.chiangmaiConnection}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* 2. Video Player & Scoring Container */}
