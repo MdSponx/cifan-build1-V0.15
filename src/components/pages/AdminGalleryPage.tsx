@@ -48,6 +48,7 @@ const AdminGalleryPage: React.FC<AdminGalleryPageProps> = ({ onSidebarToggle }) 
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportProgress, setExportProgress] = useState<ExportProgress | undefined>();
+  const [imageError, setImageError] = useState(false);
   const { showSuccess, showError } = useNotificationHelpers();
   
   // Filter and pagination state
