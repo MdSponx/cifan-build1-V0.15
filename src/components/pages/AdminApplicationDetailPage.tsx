@@ -898,26 +898,122 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
                       ? application.filmTitleTh 
                       : application.filmTitle}
                   </h1>
-              {/* Director/Submitter */}
-              <div className="glass-card p-4 rounded-xl">
-                    {/* VideoScoringPanel - 1/3 width */}
-                    <div className="xl:col-span-1">
-                      <VideoScoringPanel
-                        applicationId={application.id}
-                        currentScores={currentUserScore}
-                        allScores={application.scores || []}
-                        onScoreChange={handleScoreChange}
-                        onSaveScores={handleSaveScore}
-                        isSubmitting={isSubmitting}
-                      />
-                <span>🏔️</span>
-                <span>{currentLanguage === 'th' ? 'ความเกี่ยวข้องกับเชียงใหม่' : 'Connection to Chiang Mai'}</span>
-              </h4>
-              <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
-                {application.chiangmaiConnection}
-              </p>
+                  {/* Director/Submitter */}
+                  <div className="glass-card p-4 rounded-xl">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <User className="w-4 h-4 text-[#FCB283]" />
+                      <span className={`text-sm ${getClass('subtitle')} text-white/80`}>
+                        {currentLanguage === 'th' ? 'ผู้กำกับ/ผู้ส่งผลงาน' : 'Director/Submitter'}
+                      </span>
+                    </div>
+                    <p className={`${getClass('body')} text-white font-medium`}>
+                      {currentLanguage === 'th' && contactInfo.nameTh 
+                        ? contactInfo.nameTh 
+                        : contactInfo.name}
+                    </p>
+                    <p className={`text-sm ${getClass('body')} text-white/70`}>
+                      {contactInfo.role === 'Other' ? contactInfo.customRole : contactInfo.role}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2 ml-4">
+                  <span className="text-2xl">{getCountryFlag(application.nationality)}</span>
+                  <div className="text-right">
+                    <p className={`text-sm ${getClass('body')} text-white/80`}>
+                      {application.nationality}
+                    </p>
+                    <p className={`text-xs ${getClass('body')} text-white/60`}>
+                      {application.competitionCategory.charAt(0).toUpperCase() + application.competitionCategory.slice(1)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Film Metadata */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="glass-card p-3 rounded-lg text-center">
+                  <div className="text-lg font-bold text-[#FCB283]">
+                    {Math.floor(application.duration / 60)}:{(application.duration % 60).toString().padStart(2, '0')}
+                  </div>
+                  <div className={`text-xs ${getClass('body')} text-white/60`}>
+                    {currentLanguage === 'th' ? 'นาที' : 'minutes'}
+                  </div>
+                </div>
+                
+                <div className="glass-card p-3 rounded-lg text-center">
+                  <div className="text-lg font-bold text-[#FCB283] capitalize">
+                    {application.format.replace('-', ' ')}
+                  </div>
+                  <div className={`text-xs ${getClass('body')} text-white/60`}>
+                    {currentLanguage === 'th' ? 'รูปแบบ' : 'format'}
+                  </div>
+                </div>
+                
+                <div className="glass-card p-3 rounded-lg text-center">
+                  <div className="text-lg font-bold text-[#FCB283]">
+                    {application.genres.length}
+                  </div>
+                  <div className={`text-xs ${getClass('body')} text-white/60`}>
+                    {currentLanguage === 'th' ? 'แนว' : 'genres'}
+                  </div>
+                </div>
+                
+                <div className="glass-card p-3 rounded-lg text-center">
+                  <div className="text-lg font-bold text-[#FCB283]">
+                    {formatDate(application.submittedAt).split(',')[0]}
+                  </div>
+                  <div className={`text-xs ${getClass('body')} text-white/60`}>
+                    {currentLanguage === 'th' ? 'ส่งเมื่อ' : 'submitted'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Genres */}
+              {application.genres.length > 0 && (
+                <div className="mb-6">
+                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-2 flex items-center space-x-2`}>
+                    <span>🎭</span>
+                    <span>{currentLanguage === 'th' ? 'แนวภาพยนตร์' : 'Genres'}</span>
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {application.genres.map((genre, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Synopsis */}
+              <div className="mb-6">
+                <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3 flex items-center space-x-2`}>
+                  <span>📝</span>
+                  <span>{currentLanguage === 'th' ? 'เรื่องย่อ' : 'Synopsis'}</span>
+                </h4>
+                <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
+                  {application.synopsis}
+                </p>
+              </div>
+
+              {/* Chiang Mai Connection */}
+              {application.chiangmaiConnection && (
+                <div>
+                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3 flex items-center space-x-2`}>
+                    <span>🏔️</span>
+                    <span>{currentLanguage === 'th' ? 'ความเกี่ยวข้องกับเชียงใหม่' : 'Connection to Chiang Mai'}</span>
+                  </h4>
+                  <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
+                    {application.chiangmaiConnection}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -969,9 +1065,8 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
               </div>
             </div>
 
-                            <div className={`text-2xl ${getClass('header')} text-[#FCB283] mb-1 flex items-center space-x-2`}>
-                              <span>{averageScore.toFixed(1)}/50</span>
-                              <span className="text-lg">({averagePercentage}%)</span>
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Score Summary */}
               <div className="glass-card p-4 rounded-xl">
                 <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
