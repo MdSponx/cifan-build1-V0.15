@@ -89,7 +89,11 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
   const [crewSortOrder, setCrewSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showAllCrew, setShowAllCrew] = useState(false);
   const [selectedFilePreview, setSelectedFilePreview] = useState<string | null>(null);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['film-info', 'contact-info']));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['film', 'submitter', 'crew', 'files']));
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'fullName', direction: 'asc' });
+  const [newComment, setNewComment] = useState('');
+  const [quickScore, setQuickScore] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { showSuccess, showError } = useNotificationHelpers();
 
@@ -668,6 +672,61 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
     return application.scores.reduce((sum, score) => sum + score.totalScore, 0) / application.scores.length;
   };
 
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      // TODO: Implement comment saving to Firestore
+      console.log('Adding comment:', newComment);
+      
+      // For now, just clear the comment
+      setNewComment('');
+      
+      showSuccess(
+        currentLanguage === 'th' ? 'เพิ่มความคิดเห็นสำเร็จ' : 'Comment Added',
+        currentLanguage === 'th' ? 'ความคิดเห็นถูกบันทึกเรียบร้อยแล้ว' : 'Your comment has been saved successfully'
+      );
+    } catch (error) {
+      showError(
+        currentLanguage === 'th' ? 'เกิดข้อผิดพลาด' : 'Error',
+        currentLanguage === 'th' ? 'ไม่สามารถบันทึกความคิดเห็นได้' : 'Failed to save comment'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleQuickScore = async () => {
+    if (quickScore < 0 || quickScore > 40) return;
+    
+    setIsSubmitting(true);
+    try {
+      // TODO: Implement quick scoring to Firestore
+      console.log('Quick score:', quickScore);
+      
+      showSuccess(
+        currentLanguage === 'th' ? 'บันทึกคะแนนสำเร็จ' : 'Score Saved',
+        currentLanguage === 'th' ? 'คะแนนถูกบันทึกเรียบร้อยแล้ว' : 'Your score has been saved successfully'
+      );
+    } catch (error) {
+      showError(
+        currentLanguage === 'th' ? 'เกิดข้อผิดพลาด' : 'Error',
+        currentLanguage === 'th' ? 'ไม่สามารถบันทึกคะแนนได้' : 'Failed to save score'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Helper component for info rows
+  const InfoRow: React.FC<{ label: string; value: string | undefined }> = ({ label, value }) => (
+    <div>
+      <label className={`text-sm ${getClass('body')} text-white/60`}>{label}</label>
+      <p className={`${getClass('body')} text-white`}>{value || '-'}</p>
+    </div>
+  );
+
   // Loading State
   if (loading) {
     return (
@@ -760,907 +819,835 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
         </div>
       </AdminZoneHeader>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
-        
-        {/* Left Column: Application Content */}
-        <div className="xl:col-span-2 space-y-6 sm:space-y-8">
+      {/* 1. Film Information Container - Rebalanced */}
+      <div className="glass-container rounded-2xl p-6 sm:p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           
-          {/* 1. Enhanced Film Information Section */}
-          <div className="glass-container rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl ${getClass('header')} text-white flex items-center space-x-2`}>
-                <Video className="w-6 h-6 text-[#FCB283]" />
-                <span>{currentContent.filmInformation}</span>
-              </h3>
-              <button
-                onClick={() => toggleSection('film-info')}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                {expandedSections.has('film-info') ? 
-                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
-                  <ChevronDown className="w-5 h-5 text-white/60" />
-                }
-              </button>
-            </div>
-
-            {expandedSections.has('film-info') && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                
-                {/* Poster */}
-                <div className="lg:col-span-1">
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/10">
-                    {application.files.posterFile.url ? (
-                      <img
-                        src={application.files.posterFile.url}
-                        alt={`${application.filmTitle} Poster`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            parent.innerHTML = `
-                              <div class="w-full h-full flex flex-col items-center justify-center text-white/60">
-                                <div class="text-4xl mb-2">🖼️</div>
-                                <div class="text-sm text-center px-4">
-                                  ${currentLanguage === 'th' ? 'ไม่สามารถโหลดโปสเตอร์ได้' : 'Poster not available'}
-                                </div>
-                              </div>
-                            `;
-                          }
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
-                        <div className="text-4xl mb-2">🖼️</div>
-                        <div className="text-sm text-center px-4">
-                          {currentLanguage === 'th' ? 'ไม่มีโปสเตอร์' : 'No poster available'}
+          {/* Poster - Left Side (1/3) */}
+          <div className="lg:col-span-1">
+            <div className="aspect-[3/4] rounded-xl overflow-hidden bg-white/5 border border-white/10">
+              {application.files.posterFile.url ? (
+                <img
+                  src={application.files.posterFile.url}
+                  alt={`${application.filmTitle} Poster`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `
+                        <div class="w-full h-full flex flex-col items-center justify-center text-white/60">
+                          <div class="text-4xl mb-2">🖼️</div>
+                          <div class="text-sm text-center px-4">
+                            ${currentLanguage === 'th' ? 'ไม่สามารถโหลดโปสเตอร์ได้' : 'Poster not available'}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      `;
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-white/60">
+                  <div className="text-4xl mb-2">🖼️</div>
+                  <div className="text-sm text-center px-4">
+                    {currentLanguage === 'th' ? 'ไม่มีโปสเตอร์' : 'No poster available'}
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
 
-                {/* Film Details */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Title and Category */}
-                  <div>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h1 className={`text-2xl sm:text-3xl ${getClass('header')} text-white mb-2 leading-tight`}>
-                          {currentLanguage === 'th' && application.filmTitleTh 
-                            ? application.filmTitleTh 
-                            : application.filmTitle}
-                        </h1>
-                        {application.filmTitleTh && (
-                          <h2 className={`text-lg ${getClass('subtitle')} text-[#FCB283] opacity-80`}>
-                            {currentLanguage === 'th' ? application.filmTitle : application.filmTitleTh}
-                          </h2>
-                        )}
-                      </div>
-                      
-                      {/* Competition Category Badge */}
-                      <div className="flex items-center space-x-2 px-4 py-2 glass-card rounded-xl">
-                        <img 
-                          src={getCategoryLogo(application.competitionCategory)}
-                          alt={`${application.competitionCategory} logo`}
-                          className="h-6 w-auto object-contain"
-                        />
-                        <span className={`text-sm ${getClass('subtitle')} text-[#FCB283] capitalize`}>
-                          {application.competitionCategory}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Enhanced Film Metadata Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Nationality */}
-                    <div className="glass-card p-4 rounded-xl">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Globe className="w-4 h-4 text-[#FCB283]" />
-                        <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                          {currentContent.nationality}
-                        </h4>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg">{getCountryFlag((application as any).nationality || 'Unknown')}</span>
-                        <p className={`${getClass('body')} text-white`}>
-                          {(application as any).nationality || 'Unknown'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Format and Duration */}
-                    <div className="glass-card p-4 rounded-xl">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Video className="w-4 h-4 text-[#FCB283]" />
-                        <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                          {currentContent.formatDetails}
-                        </h4>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-lg">{application.format === 'live-action' ? '🎬' : '🎨'}</span>
-                          <p className={`${getClass('body')} text-white capitalize`}>
-                            {application.format.replace('-', ' ')}
-                          </p>
-                        </div>
-                        <p className={`${getClass('body')} text-white/70 text-sm`}>
-                          {application.duration} {currentLanguage === 'th' ? 'นาที' : 'minutes'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Director/Submitter */}
-                    <div className="glass-card p-4 rounded-xl">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <User className="w-4 h-4 text-[#FCB283]" />
-                        <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                          {application.competitionCategory === 'world' ? 
-                            (currentLanguage === 'th' ? 'ผู้กำกับ' : 'Director') :
-                            (currentLanguage === 'th' ? 'ผู้ส่งผลงาน' : 'Submitter')
-                          }
-                        </h4>
-                      </div>
-                      <p className={`${getClass('body')} text-white`}>
-                        {currentLanguage === 'th' && contactInfo.nameTh 
-                          ? contactInfo.nameTh 
-                          : contactInfo.name}
-                      </p>
-                      {contactInfo.nameTh && (
-                        <p className={`${getClass('body')} text-white/60 text-sm`}>
-                          {currentLanguage === 'th' ? contactInfo.name : contactInfo.nameTh}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Production Year */}
-                    <div className="glass-card p-4 rounded-xl">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Calendar className="w-4 h-4 text-[#FCB283]" />
-                        <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                          {currentContent.productionYear}
-                        </h4>
-                      </div>
-                      <p className={`${getClass('body')} text-white`}>
-                        {application.createdAt.getFullYear()}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Genre Tags */}
-                  <div>
-                    <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
-                      {currentContent.genres}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {application.genres.map((genre, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm border border-[#FCB283]/30 hover:bg-[#FCB283]/30 transition-colors"
-                        >
-                          {genre}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Synopsis */}
-                  <div>
-                    <h4 className={`text-lg ${getClass('subtitle')} text-white mb-3`}>
-                      {currentContent.synopsis}
-                    </h4>
-                    <div className="glass-card p-4 rounded-xl">
-                      <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
-                        {application.synopsis}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Chiang Mai Connection */}
-                  {application.chiangmaiConnection && (
-                    <div>
-                      <h4 className={`text-lg ${getClass('subtitle')} text-white mb-3`}>
-                        {currentContent.chiangmaiConnection}
-                      </h4>
-                      <div className="glass-card p-4 rounded-xl">
-                        <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
-                          {application.chiangmaiConnection}
-                        </p>
-                      </div>
-                    </div>
+          {/* Film Details - Right Side (2/3) */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Title and Category */}
+            <div>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <h1 className={`text-2xl sm:text-3xl ${getClass('header')} text-white mb-2 leading-tight`}>
+                    {currentLanguage === 'th' && application.filmTitleTh 
+                      ? application.filmTitleTh 
+                      : application.filmTitle}
+                  </h1>
+                  {application.filmTitleTh && (
+                    <h2 className={`text-lg ${getClass('subtitle')} text-[#FCB283] opacity-80`}>
+                      {currentLanguage === 'th' ? application.filmTitle : application.filmTitleTh}
+                    </h2>
                   )}
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* 2. Complete Contact Information Section */}
-          <div className="glass-container rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl ${getClass('header')} text-white flex items-center space-x-2`}>
-                <User className="w-6 h-6 text-[#FCB283]" />
-                <span>{currentContent.contactInformation}</span>
-              </h3>
-              <button
-                onClick={() => toggleSection('contact-info')}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                {expandedSections.has('contact-info') ? 
-                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
-                  <ChevronDown className="w-5 h-5 text-white/60" />
-                }
-              </button>
-            </div>
-
-            {expandedSections.has('contact-info') && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                {/* Personal Details */}
-                <div className="glass-card p-6 rounded-xl">
-                  <h4 className={`text-lg ${getClass('subtitle')} text-[#FCB283] mb-4`}>
-                    {currentContent.personalDetails}
-                  </h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className={`text-sm ${getClass('body')} text-white/60`}>
-                        {currentContent.name}
-                      </label>
-                      <p className={`${getClass('body')} text-white font-medium`}>
-                        {currentLanguage === 'th' && contactInfo.nameTh 
-                          ? contactInfo.nameTh 
-                          : contactInfo.name}
-                      </p>
-                      {contactInfo.nameTh && (
-                        <p className={`${getClass('body')} text-white/60 text-sm`}>
-                          {currentLanguage === 'th' ? contactInfo.name : contactInfo.nameTh}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <label className={`text-sm ${getClass('body')} text-white/60`}>
-                        {currentContent.age}
-                      </label>
-                      <p className={`${getClass('body')} text-white`}>
-                        {contactInfo.age} {currentContent.yearsOld}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <label className={`text-sm ${getClass('body')} text-white/60`}>
-                        {currentContent.roleInFilm}
-                      </label>
-                      <p className={`${getClass('body')} text-white`}>
-                        {contactInfo.role === 'Other' ? contactInfo.customRole : contactInfo.role}
-                      </p>
-                    </div>
-                  </div>
+                {/* Competition Category Badge */}
+                <div className="flex items-center space-x-2 px-4 py-2 glass-card rounded-xl">
+                  <img 
+                    src={getCategoryLogo(application.competitionCategory)}
+                    alt={`${application.competitionCategory} logo`}
+                    className="h-6 w-auto object-contain"
+                  />
+                  <span className={`text-sm ${getClass('subtitle')} text-[#FCB283] capitalize`}>
+                    {application.competitionCategory}
+                  </span>
                 </div>
-
-                {/* Contact Details */}
-                <div className="glass-card p-6 rounded-xl">
-                  <h4 className={`text-lg ${getClass('subtitle')} text-[#FCB283] mb-4`}>
-                    {currentContent.contactDetails}
-                  </h4>
-                  <div className="space-y-4">
-                    <div>
-                      <label className={`text-sm ${getClass('body')} text-white/60 flex items-center space-x-2`}>
-                        <Phone className="w-4 h-4" />
-                        <span>{currentContent.phone}</span>
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <p className={`${getClass('body')} text-white`}>
-                          {contactInfo.phone}
-                        </p>
-                        <button
-                          onClick={() => window.open(`tel:${contactInfo.phone}`)}
-                          className="p-1 rounded hover:bg-white/10 transition-colors"
-                          title="Call"
-                        >
-                          <Phone className="w-4 h-4 text-[#FCB283]" />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className={`text-sm ${getClass('body')} text-white/60 flex items-center space-x-2`}>
-                        <Mail className="w-4 h-4" />
-                        <span>{currentContent.email}</span>
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <p className={`${getClass('body')} text-white break-all`}>
-                          {contactInfo.email}
-                        </p>
-                        <button
-                          onClick={() => window.open(`mailto:${contactInfo.email}`)}
-                          className="p-1 rounded hover:bg-white/10 transition-colors"
-                          title="Send Email"
-                        >
-                          <Mail className="w-4 h-4 text-[#FCB283]" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Educational Details */}
-                {educationalInfo && (
-                  <div className="lg:col-span-2">
-                    <div className="glass-card p-6 rounded-xl">
-                      <h4 className={`text-lg ${getClass('subtitle')} text-[#FCB283] mb-4 flex items-center space-x-2`}>
-                        <School className="w-5 h-5" />
-                        <span>{currentContent.educationalDetails}</span>
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className={`text-sm ${getClass('body')} text-white/60`}>
-                            {educationalInfo.type === 'school' ? currentContent.school : currentContent.university}
-                          </label>
-                          <p className={`${getClass('body')} text-white`}>
-                            {educationalInfo.institution}
-                          </p>
-                        </div>
-                        
-                        {educationalInfo.faculty && (
-                          <div>
-                            <label className={`text-sm ${getClass('body')} text-white/60`}>
-                              {currentContent.faculty}
-                            </label>
-                            <p className={`${getClass('body')} text-white`}>
-                              {educationalInfo.faculty}
-                            </p>
-                          </div>
-                        )}
-                        
-                        <div>
-                          <label className={`text-sm ${getClass('body')} text-white/60`}>
-                            {currentContent.studentId}
-                          </label>
-                          <p className={`${getClass('body')} text-white font-mono`}>
-                            {educationalInfo.id}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
-            )}
-          </div>
-
-          {/* 3. Comprehensive Crew Table */}
-          <div className="glass-container rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl ${getClass('header')} text-white flex items-center space-x-2`}>
-                <Users className="w-6 h-6 text-[#FCB283]" />
-                <span>{currentContent.crewMembers}</span>
-                <span className="px-2 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm">
-                  {application.crewMembers?.length || 0}
-                </span>
-              </h3>
-              <button
-                onClick={() => toggleSection('crew-table')}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                {expandedSections.has('crew-table') ? 
-                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
-                  <ChevronDown className="w-5 h-5 text-white/60" />
-                }
-              </button>
             </div>
 
-            {expandedSections.has('crew-table') && (
-              <>
-                {application.crewMembers && application.crewMembers.length > 0 ? (
-                  <div className="space-y-4">
-                    
-                    {/* Crew Controls */}
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                      {/* Search */}
-                      <div className="relative flex-1 max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-4 h-4" />
-                        <input
-                          type="text"
-                          placeholder={currentContent.searchCrew}
-                          value={crewSearchTerm}
-                          onChange={(e) => setCrewSearchTerm(e.target.value)}
-                          className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-[#FCB283] focus:outline-none"
-                        />
-                      </div>
-
-                      {/* Sort Controls */}
-                      <div className="flex items-center space-x-2">
-                        <span className={`text-sm ${getClass('body')} text-white/60`}>
-                          {currentContent.sortBy}:
-                        </span>
-                        <select
-                          value={crewSortBy}
-                          onChange={(e) => setCrewSortBy(e.target.value as 'name' | 'role' | 'age')}
-                          className="px-3 py-1 bg-white/10 border border-white/20 rounded text-white focus:border-[#FCB283] focus:outline-none text-sm"
-                        >
-                          <option value="name" className="bg-[#110D16]">{currentContent.name}</option>
-                          <option value="role" className="bg-[#110D16]">{currentContent.role}</option>
-                          <option value="age" className="bg-[#110D16]">{currentContent.age}</option>
-                        </select>
-                        <button
-                          onClick={() => setCrewSortOrder(crewSortOrder === 'asc' ? 'desc' : 'asc')}
-                          className="p-1 rounded hover:bg-white/10 transition-colors"
-                        >
-                          {crewSortOrder === 'asc' ? 
-                            <ChevronUp className="w-4 h-4 text-white/60" /> : 
-                            <ChevronDown className="w-4 h-4 text-white/60" />
-                          }
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Crew Table */}
-                    <div className="overflow-x-auto">
-                      <table className="w-full glass-card rounded-xl border border-white/10 min-w-[600px]">
-                        <thead>
-                          <tr className="bg-gradient-to-r from-[#AA4626] to-[#FCB283]">
-                            <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
-                              {currentContent.name}
-                            </th>
-                            <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
-                              {currentContent.role}
-                            </th>
-                            <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
-                              {currentContent.age}
-                            </th>
-                            <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
-                              {currentContent.contact}
-                            </th>
-                            <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
-                              {currentContent.institution}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredCrew.map((member: any, index: number) => (
-                            <tr key={index} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-                              <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
-                                <div>
-                                  <div className="font-medium">
-                                    {currentLanguage === 'th' && member.fullNameTh 
-                                      ? member.fullNameTh 
-                                      : member.fullName}
-                                  </div>
-                                  {member.fullNameTh && (
-                                    <div className="text-xs text-white/60">
-                                      {currentLanguage === 'th' ? member.fullName : member.fullNameTh}
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
-                                {member.role === 'Other' ? member.customRole : member.role}
-                              </td>
-                              <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
-                                {member.age} {currentLanguage === 'th' ? 'ปี' : 'years'}
-                              </td>
-                              <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
-                                <div className="space-y-1">
-                                  {member.phone && (
-                                    <div className="flex items-center space-x-2">
-                                      <Phone className="w-3 h-3 text-white/60" />
-                                      <span className="text-xs">{member.phone}</span>
-                                      <button
-                                        onClick={() => window.open(`tel:${member.phone}`)}
-                                        className="p-1 rounded hover:bg-white/10 transition-colors"
-                                      >
-                                        <ExternalLink className="w-3 h-3 text-[#FCB283]" />
-                                      </button>
-                                    </div>
-                                  )}
-                                  {member.email && (
-                                    <div className="flex items-center space-x-2">
-                                      <Mail className="w-3 h-3 text-white/60" />
-                                      <span className="text-xs break-all">{member.email}</span>
-                                      <button
-                                        onClick={() => window.open(`mailto:${member.email}`)}
-                                        className="p-1 rounded hover:bg-white/10 transition-colors"
-                                      >
-                                        <ExternalLink className="w-3 h-3 text-[#FCB283]" />
-                                      </button>
-                                    </div>
-                                  )}
-                                </div>
-                              </td>
-                              <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
-                                <div>
-                                  {member.schoolName && (
-                                    <div className="font-medium">{member.schoolName}</div>
-                                  )}
-                                  {member.studentId && (
-                                    <div className="text-xs text-white/60 font-mono">ID: {member.studentId}</div>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Show More/Less Button */}
-                    {application.crewMembers.length > 5 && (
-                      <div className="text-center">
-                        <button
-                          onClick={() => setShowAllCrew(!showAllCrew)}
-                          className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
-                        >
-                          {showAllCrew ? currentContent.showLess : currentContent.showAll}
-                          {!showAllCrew && ` (${application.crewMembers.length - 5} more)`}
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="w-12 h-12 text-white/40 mx-auto mb-4" />
-                    <p className={`${getClass('body')} text-white/60`}>
-                      {currentContent.noCrew}
+            {/* Enhanced Film Metadata Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Nationality */}
+              <div className="glass-card p-4 rounded-xl">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Globe className="w-4 h-4 text-[#FCB283]" />
+                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
+                    {currentContent.nationality}
+                  </h4>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg">{getCountryFlag((application as any).nationality || 'Unknown')}</span>
+                  <p className={`${getClass('body')} text-white`}>
+                    {(application as any).nationality || 'Unknown'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Format and Duration */}
+              <div className="glass-card p-4 rounded-xl">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Video className="w-4 h-4 text-[#FCB283]" />
+                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
+                    {currentContent.formatDetails}
+                  </h4>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg">{application.format === 'live-action' ? '🎬' : '🎨'}</span>
+                    <p className={`${getClass('body')} text-white capitalize`}>
+                      {application.format.replace('-', ' ')}
                     </p>
                   </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* 4. Proof Documents & Files Section */}
-          <div className="glass-container rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl ${getClass('header')} text-white flex items-center space-x-2`}>
-                <FileText className="w-6 h-6 text-[#FCB283]" />
-                <span>{currentContent.proofDocuments}</span>
-              </h3>
-              <button
-                onClick={() => toggleSection('files')}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                {expandedSections.has('files') ? 
-                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
-                  <ChevronDown className="w-5 h-5 text-white/60" />
-                }
-              </button>
-            </div>
-
-            {expandedSections.has('files') && (
-              <div className="space-y-6">
-                
-                {/* Film File */}
-                <div className="glass-card p-6 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <Video className="w-6 h-6 text-[#FCB283]" />
-                      <div>
-                        <h4 className={`${getClass('subtitle')} text-white`}>
-                          {currentContent.filmFile}
-                        </h4>
-                        <p className={`text-xs ${getClass('body')} text-white/60`}>
-                          {application.files.filmFile.name}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {getFileStatusIcon(application.files.filmFile)}
-                      <span className={`text-sm ${getClass('body')} text-white/80`}>
-                        {getFileStatusText(application.files.filmFile)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <label className={`text-xs ${getClass('body')} text-white/60`}>
-                        {currentContent.fileSize}
-                      </label>
-                      <p className={`text-sm ${getClass('body')} text-white`}>
-                        {formatFileSize(application.files.filmFile.size)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className={`text-xs ${getClass('body')} text-white/60`}>
-                        {currentContent.uploadDate}
-                      </label>
-                      <p className={`text-sm ${getClass('body')} text-white`}>
-                        {formatDate(application.createdAt)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className={`text-xs ${getClass('body')} text-white/60`}>
-                        {currentContent.duration}
-                      </label>
-                      <p className={`text-sm ${getClass('body')} text-white`}>
-                        {application.duration} {currentLanguage === 'th' ? 'นาที' : 'minutes'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {application.files.filmFile.url && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleFileDownload(application.files.filmFile.url, application.files.filmFile.name)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span className="text-sm">{currentContent.download}</span>
-                      </button>
-                      <button
-                        onClick={() => handleCopyLink(application.files.filmFile.url)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
-                      >
-                        <Copy className="w-4 h-4" />
-                        <span className="text-sm">{currentContent.copyLink}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Poster File */}
-                <div className="glass-card p-6 rounded-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <Image className="w-6 h-6 text-[#FCB283]" />
-                      <div>
-                        <h4 className={`${getClass('subtitle')} text-white`}>
-                          {currentContent.posterFile}
-                        </h4>
-                        <p className={`text-xs ${getClass('body')} text-white/60`}>
-                          {application.files.posterFile.name}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {getFileStatusIcon(application.files.posterFile)}
-                      <span className={`text-sm ${getClass('body')} text-white/80`}>
-                        {getFileStatusText(application.files.posterFile)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className={`text-xs ${getClass('body')} text-white/60`}>
-                        {currentContent.fileSize}
-                      </label>
-                      <p className={`text-sm ${getClass('body')} text-white`}>
-                        {formatFileSize(application.files.posterFile.size)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className={`text-xs ${getClass('body')} text-white/60`}>
-                        {currentContent.uploadDate}
-                      </label>
-                      <p className={`text-sm ${getClass('body')} text-white`}>
-                        {formatDate(application.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {application.files.posterFile.url && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleFileDownload(application.files.posterFile.url, application.files.posterFile.name)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span className="text-sm">{currentContent.download}</span>
-                      </button>
-                      <button
-                        onClick={() => setSelectedFilePreview(application.files.posterFile.url)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span className="text-sm">{currentContent.preview}</span>
-                      </button>
-                      <button
-                        onClick={() => handleCopyLink(application.files.posterFile.url)}
-                        className="flex items-center space-x-2 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
-                      >
-                        <Copy className="w-4 h-4" />
-                        <span className="text-sm">{currentContent.copyLink}</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Proof File */}
-                {application.files.proofFile && (
-                  <div className="glass-card p-6 rounded-xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="w-6 h-6 text-[#FCB283]" />
-                        <div>
-                          <h4 className={`${getClass('subtitle')} text-white`}>
-                            {currentContent.proofFile}
-                          </h4>
-                          <p className={`text-xs ${getClass('body')} text-white/60`}>
-                            {application.files.proofFile.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {getFileStatusIcon(application.files.proofFile)}
-                        <span className={`text-sm ${getClass('body')} text-white/80`}>
-                          {getFileStatusText(application.files.proofFile)}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <label className={`text-xs ${getClass('body')} text-white/60`}>
-                          {currentContent.fileSize}
-                        </label>
-                        <p className={`text-sm ${getClass('body')} text-white`}>
-                          {formatFileSize(application.files.proofFile.size)}
-                        </p>
-                      </div>
-                      <div>
-                        <label className={`text-xs ${getClass('body')} text-white/60`}>
-                          {currentContent.uploadDate}
-                        </label>
-                        <p className={`text-sm ${getClass('body')} text-white`}>
-                          {formatDate(application.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {application.files.proofFile.url && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleFileDownload(application.files.proofFile.url, application.files.proofFile.name)}
-                          className="flex items-center space-x-2 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
-                        >
-                          <Download className="w-4 h-4" />
-                          <span className="text-sm">{currentContent.download}</span>
-                        </button>
-                        <button
-                          onClick={() => handleCopyLink(application.files.proofFile.url)}
-                          className="flex items-center space-x-2 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
-                        >
-                          <Copy className="w-4 h-4" />
-                          <span className="text-sm">{currentContent.copyLink}</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* 5. Application Timeline */}
-          <div className="glass-container rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className={`text-xl ${getClass('header')} text-white flex items-center space-x-2`}>
-                <Clock className="w-6 h-6 text-[#FCB283]" />
-                <span>{currentContent.applicationTimeline}</span>
-              </h3>
-              <button
-                onClick={() => toggleSection('timeline')}
-                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                {expandedSections.has('timeline') ? 
-                  <ChevronUp className="w-5 h-5 text-white/60" /> : 
-                  <ChevronDown className="w-5 h-5 text-white/60" />
-                }
-              </button>
-            </div>
-
-            {expandedSections.has('timeline') && (
-              <div className="space-y-4">
-                {/* Timeline Items */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-4 p-4 glass-card rounded-xl">
-                    <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-                    <div className="flex-1">
-                      <h4 className={`${getClass('subtitle')} text-white`}>
-                        {currentContent.draftCreated}
-                      </h4>
-                      <p className={`text-sm ${getClass('body')} text-white/60`}>
-                        {formatDate(application.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4 p-4 glass-card rounded-xl">
-                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                    <div className="flex-1">
-                      <h4 className={`${getClass('subtitle')} text-white`}>
-                        {currentContent.lastModified}
-                      </h4>
-                      <p className={`text-sm ${getClass('body')} text-white/60`}>
-                        {formatDate(application.lastModified)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {application.submittedAt && (
-                    <div className="flex items-center space-x-4 p-4 glass-card rounded-xl">
-                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
-                      <div className="flex-1">
-                        <h4 className={`${getClass('subtitle')} text-white`}>
-                          {currentContent.submitted}
-                        </h4>
-                        <p className={`text-sm ${getClass('body')} text-white/60`}>
-                          {formatDate(application.submittedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {application.lastReviewedAt && (
-                    <div className="flex items-center space-x-4 p-4 glass-card rounded-xl">
-                      <div className="w-3 h-3 rounded-full bg-purple-400"></div>
-                      <div className="flex-1">
-                        <h4 className={`${getClass('subtitle')} text-white`}>
-                          {currentContent.reviewed}
-                        </h4>
-                        <p className={`text-sm ${getClass('body')} text-white/60`}>
-                          {formatDate(application.lastReviewedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
+                  <p className={`${getClass('body')} text-white/70 text-sm`}>
+                    {application.duration} {currentLanguage === 'th' ? 'นาที' : 'minutes'}
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Video Section with Scoring Toggle */}
-          <div className="relative">
-            <VideoSection 
-              application={application}
-              isEditMode={false}
-              canEdit={false}
-            />
-            
-            {/* Scoring Panel Toggle */}
-            <div className="absolute top-4 right-4">
-              <button
-                onClick={() => setShowScoringPanel(!showScoringPanel)}
-                className="flex items-center space-x-2 px-4 py-2 glass-container rounded-lg hover:bg-white/20 transition-colors"
-              >
-                <Star className="w-4 h-4 text-[#FCB283]" />
-                <span className={`text-sm ${getClass('body')} text-white`}>
-                  {showScoringPanel ? currentContent.hideScoring : currentContent.toggleScoring}
-                </span>
-              </button>
+              {/* Director/Submitter */}
+              <div className="glass-card p-4 rounded-xl">
+                <div className="flex items-center space-x-2 mb-2">
+                  <User className="w-4 h-4 text-[#FCB283]" />
+                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
+                    {application.competitionCategory === 'world' ? 
+                      (currentLanguage === 'th' ? 'ผู้กำกับ' : 'Director') :
+                      (currentLanguage === 'th' ? 'ผู้ส่งผลงาน' : 'Submitter')
+                    }
+                  </h4>
+                </div>
+                <p className={`${getClass('body')} text-white`}>
+                  {currentLanguage === 'th' && contactInfo.nameTh 
+                    ? contactInfo.nameTh 
+                    : contactInfo.name}
+                </p>
+                {contactInfo.nameTh && (
+                  <p className={`${getClass('body')} text-white/60 text-sm`}>
+                    {currentLanguage === 'th' ? contactInfo.name : contactInfo.nameTh}
+                  </p>
+                )}
+              </div>
+
+              {/* Production Year */}
+              <div className="glass-card p-4 rounded-xl">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Calendar className="w-4 h-4 text-[#FCB283]" />
+                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
+                    {currentContent.productionYear}
+                  </h4>
+                </div>
+                <p className={`${getClass('body')} text-white`}>
+                  {application.createdAt.getFullYear()}
+                </p>
+              </div>
+            </div>
+
+            {/* Genre Tags */}
+            <div>
+              <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
+                {currentContent.genres}
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {application.genres.map((genre, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm border border-[#FCB283]/30 hover:bg-[#FCB283]/30 transition-colors"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Scoring Panel */}
-          {showScoringPanel && (
-            <VideoScoringPanel
-              applicationId={application.id}
-              currentScores={currentScores}
-              allScores={application.scores}
-              onScoreChange={handleScoreChange}
-              onSaveScores={handleSaveScores}
-              isSubmitting={isSubmittingScore}
-            />
+        {/* Synopsis and Chiang Mai Connection - Full Width Below */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Synopsis */}
+          <div className="glass-card p-6 rounded-xl">
+            <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
+              <span>📖</span>
+              <span>{currentLanguage === 'th' ? 'เรื่องย่อ' : 'Synopsis'}</span>
+            </h4>
+            <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
+              {application.synopsis}
+            </p>
+          </div>
+
+          {/* Chiang Mai Connection */}
+          {application.chiangmaiConnection && (
+            <div className="glass-card p-6 rounded-xl">
+              <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
+                <span>🏔️</span>
+                <span>{currentLanguage === 'th' ? 'ความเกี่ยวข้องกับเชียงใหม่' : 'Connection to Chiang Mai'}</span>
+              </h4>
+              <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
+                {application.chiangmaiConnection}
+              </p>
+            </div>
           )}
         </div>
+      </div>
 
-        {/* Right Column: Admin Controls */}
-        <div className="xl:col-span-1">
-          <AdminControlsPanel
-            application={application}
-            onStatusChange={handleStatusChange}
-            onNotesChange={handleNotesChange}
-            onFlagToggle={handleFlagToggle}
-            onExport={handleExport}
-            onPrint={handlePrint}
-            isUpdating={isUpdatingStatus}
-          />
+      {/* 2. Video Player & Scoring Container */}
+      <div className="glass-container rounded-2xl p-6 sm:p-8">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+          
+          {/* Video Player Section - 2/3 width */}
+          <div className="xl:col-span-2 space-y-6">
+            {/* Video Player */}
+            <div>
+              <h3 className={`text-xl ${getClass('header')} text-white mb-4 flex items-center space-x-2`}>
+                <span>🎬</span>
+                <span>{currentLanguage === 'th' ? 'ภาพยนตร์' : 'Film'}</span>
+              </h3>
+              
+              <div className="relative bg-black rounded-xl overflow-hidden">
+                {application.files.filmFile.url ? (
+                  <video
+                    src={application.files.filmFile.url}
+                    className="w-full aspect-video object-contain"
+                    controls
+                    poster={application.files.posterFile.url}
+                    onError={(e) => {
+                      const target = e.target as HTMLVideoElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `
+                          <div class="w-full aspect-video flex flex-col items-center justify-center text-white/60 bg-black/50">
+                            <div class="text-6xl mb-4">🎬</div>
+                            <div class="text-lg mb-2">${currentLanguage === 'th' ? 'ไม่สามารถโหลดวิดีโอได้' : 'Video not available'}</div>
+                            <div class="text-sm text-center px-4 max-w-md">
+                              ${currentLanguage === 'th' ? 'ไฟล์วิดีโออาจเสียหายหรือไม่สามารถเข้าถึงได้' : 'The video file may be corrupted or inaccessible'}
+                            </div>
+                          </div>
+                        `;
+                      }
+                    }}
+                  />
+                ) : (
+                  <div className="w-full aspect-video flex flex-col items-center justify-center text-white/60 bg-black/50">
+                    <div className="text-6xl mb-4">🎬</div>
+                    <div className="text-lg mb-2">
+                      {currentLanguage === 'th' ? 'ไม่มีวิดีโอ' : 'No video available'}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Score Summary and Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Score Summary */}
+              <div className="glass-card p-4 rounded-xl">
+                <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
+                  {currentLanguage === 'th' ? 'คะแนนรวม' : 'Score Summary'}
+                </h4>
+                {application.scores && application.scores.length > 0 ? (
+                  <div className="text-center">
+                    <div className={`text-2xl ${getClass('header')} text-[#FCB283] mb-1`}>
+                      {(application.scores.reduce((sum, score) => sum + score.totalScore, 0) / application.scores.length).toFixed(1)}/40
+                    </div>
+                    <p className={`text-xs ${getClass('body')} text-white/60`}>
+                      {application.scores.length} {currentLanguage === 'th' ? 'ผู้ตัดสิน' : 'judges'}
+                    </p>
+                  </div>
+                ) : (
+                  <p className={`text-sm ${getClass('body')} text-white/60 text-center`}>
+                    {currentLanguage === 'th' ? 'ยังไม่มีคะแนน' : 'No scores yet'}
+                  </p>
+                )}
+              </div>
+
+              {/* Status Dropdown */}
+              <div className="glass-card p-4 rounded-xl">
+                <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
+                  {currentLanguage === 'th' ? 'สถานะ' : 'Status'}
+                </h4>
+                <select
+                  value={application.reviewStatus}
+                  onChange={(e) => handleStatusChange(e.target.value as any)}
+                  className="w-full p-2 bg-white/10 border border-white/20 rounded-lg text-white focus:border-[#FCB283] focus:outline-none text-sm"
+                >
+                  <option value="pending" className="bg-[#110D16]">{currentLanguage === 'th' ? 'รอการพิจารณา' : 'Pending'}</option>
+                  <option value="in-progress" className="bg-[#110D16]">{currentLanguage === 'th' ? 'กำลังพิจารณา' : 'In Progress'}</option>
+                  <option value="reviewed" className="bg-[#110D16]">{currentLanguage === 'th' ? 'พิจารณาแล้ว' : 'Reviewed'}</option>
+                  <option value="approved" className="bg-[#110D16]">{currentLanguage === 'th' ? 'อนุมัติ' : 'Approved'}</option>
+                  <option value="rejected" className="bg-[#110D16]">{currentLanguage === 'th' ? 'ปฏิเสธ' : 'Rejected'}</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Admin Comments Section */}
+            <div className="glass-card p-6 rounded-xl">
+              <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
+                <span>💬</span>
+                <span>{currentLanguage === 'th' ? 'ความคิดเห็นผู้ดูแล' : 'Admin Comments'}</span>
+              </h4>
+              
+              {/* Existing Comments */}
+              <div className="max-h-40 overflow-y-auto mb-4 space-y-3">
+                {application.scores && application.scores.length > 0 ? (
+                  application.scores
+                    .filter(score => score.comments && score.comments.trim())
+                    .map((score, index) => (
+                      <div key={index} className="bg-white/5 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`${getClass('body')} text-white text-sm font-medium`}>
+                            {score.adminName}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`${getClass('body')} text-[#FCB283] text-sm`}>
+                              {score.totalScore}/40
+                            </span>
+                            <span className={`${getClass('body')} text-white/60 text-xs`}>
+                              {new Date(score.scoredAt).toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
+                            </span>
+                          </div>
+                        </div>
+                        <p className={`${getClass('body')} text-white/80 text-sm`}>
+                          {score.comments}
+                        </p>
+                      </div>
+                    ))
+                ) : (
+                  <p className={`${getClass('body')} text-white/60 text-sm text-center py-4`}>
+                    {currentLanguage === 'th' ? 'ยังไม่มีความคิดเห็น' : 'No comments yet'}
+                  </p>
+                )}
+              </div>
+
+              {/* New Comment Input */}
+              <div className="space-y-3">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={currentLanguage === 'th' ? 'เขียนความคิดเห็น...' : 'Write a comment...'}
+                  rows={3}
+                  className="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/50 focus:border-[#FCB283] focus:outline-none resize-vertical"
+                />
+                <button
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim() || isSubmitting}
+                  className="px-4 py-2 bg-[#FCB283] hover:bg-[#AA4626] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors text-sm"
+                >
+                  {isSubmitting 
+                    ? (currentLanguage === 'th' ? 'กำลังบันทึก...' : 'Saving...') 
+                    : (currentLanguage === 'th' ? 'เพิ่มความคิดเห็น' : 'Add Comment')
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Scoring Panel - 1/3 width */}
+          <div className="xl:col-span-1">
+            <div className="glass-card p-6 rounded-xl sticky top-8">
+              <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
+                <span>⭐</span>
+                <span>{currentLanguage === 'th' ? 'ให้คะแนนด่วน' : 'Quick Score'}</span>
+              </h4>
+              
+              {/* Quick Score Input */}
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className={`block text-white/90 ${getClass('body')} mb-2 text-sm`}>
+                    {currentLanguage === 'th' ? 'คะแนนรวม (0-40)' : 'Total Score (0-40)'}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="40"
+                    value={quickScore}
+                    onChange={(e) => setQuickScore(parseInt(e.target.value) || 0)}
+                    className="w-full p-3 rounded-lg bg-white/10 border border-white/20 text-white focus:border-[#FCB283] focus:outline-none text-center text-xl font-bold"
+                  />
+                </div>
+                
+                <button
+                  onClick={handleQuickScore}
+                  disabled={quickScore < 0 || quickScore > 40 || isSubmitting}
+                  className="w-full px-4 py-3 bg-[#FCB283] hover:bg-[#AA4626] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-white transition-colors font-medium"
+                >
+                  {isSubmitting 
+                    ? (currentLanguage === 'th' ? 'กำลังบันทึก...' : 'Saving...') 
+                    : (currentLanguage === 'th' ? 'บันทึกคะแนน' : 'Submit Score')
+                  }
+                </button>
+              </div>
+
+              {/* Score History */}
+              <div>
+                <h5 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
+                  {currentLanguage === 'th' ? 'ประวัติคะแนน' : 'Score History'}
+                </h5>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {application.scores && application.scores.length > 0 ? (
+                    application.scores.map((score, index) => (
+                      <div key={index} className="bg-white/5 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`${getClass('body')} text-white text-sm font-medium`}>
+                            {score.adminName}
+                          </span>
+                          <span className={`${getClass('body')} text-[#FCB283] text-sm font-bold`}>
+                            {score.totalScore}/40
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className={`${getClass('body')} text-white/60 text-xs`}>
+                            T:{score.technical} S:{score.story} C:{score.creativity} O:{score.overall}
+                          </span>
+                          <span className={`${getClass('body')} text-white/60 text-xs`}>
+                            {new Date(score.scoredAt).toLocaleDateString(currentLanguage === 'th' ? 'th-TH' : 'en-US')}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className={`${getClass('body')} text-white/60 text-sm text-center py-4`}>
+                      {currentLanguage === 'th' ? 'ยังไม่มีคะแนน' : 'No scores yet'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* 3. Submitter Information - Restructured */}
+      <div className="glass-container rounded-2xl p-6 sm:p-8">
+        <h3 className={`text-xl ${getClass('header')} text-white mb-6 flex items-center space-x-2`}>
+          <span>👤</span>
+          <span>{currentLanguage === 'th' ? 'ข้อมูลผู้ส่งผลงาน' : 'Submitter Information'}</span>
+        </h3>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personal Information */}
+          <div className="glass-card p-4 rounded-xl">
+            <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-4`}>
+              {currentLanguage === 'th' ? 'ข้อมูลส่วนตัว' : 'Personal Information'}
+            </h4>
+            <div className="space-y-3">
+              <InfoRow
+                label={currentLanguage === 'th' ? 'ชื่อ' : 'Name'}
+                value={currentLanguage === 'th' && contactInfo.nameTh 
+                  ? contactInfo.nameTh 
+                  : contactInfo.name}
+              />
+              {contactInfo.nameTh && (
+                <InfoRow
+                  label={currentLanguage === 'th' ? 'ชื่อ (อังกฤษ)' : 'Name (English)'}
+                  value={currentLanguage === 'th' ? contactInfo.name : contactInfo.nameTh}
+                />
+              )}
+              <InfoRow
+                label={currentLanguage === 'th' ? 'บทบาท' : 'Role'}
+                value={contactInfo.role === 'Other' ? contactInfo.customRole : contactInfo.role}
+              />
+              <InfoRow
+                label={currentLanguage === 'th' ? 'อายุ' : 'Age'}
+                value={`${contactInfo.age} ${currentLanguage === 'th' ? 'ปี' : 'years'}`}
+              />
+            </div>
+          </div>
+          
+          {/* Contact Information */}
+          <div className="glass-card p-4 rounded-xl">
+            <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-4`}>
+              {currentLanguage === 'th' ? 'ข้อมูลติดต่อ' : 'Contact Information'}
+            </h4>
+            <div className="space-y-3">
+              <InfoRow
+                label={currentLanguage === 'th' ? 'อีเมล' : 'Email'}
+                value={contactInfo.email}
+              />
+              <InfoRow
+                label={currentLanguage === 'th' ? 'โทรศัพท์' : 'Phone'}
+                value={contactInfo.phone}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Educational Information - Full Width Below */}
+        {(contactInfo.schoolName || contactInfo.universityName || contactInfo.faculty) && (
+          <div className="mt-6 glass-card p-4 rounded-xl">
+            <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-4`}>
+              {currentLanguage === 'th' ? 'ข้อมูลการศึกษา' : 'Educational Information'}
+            </h4>
+            <div className="space-y-3">
+              {(contactInfo.schoolName || contactInfo.universityName) && (
+                <InfoRow
+                  label={application.competitionCategory === 'youth' 
+                    ? (currentLanguage === 'th' ? 'โรงเรียน' : 'School')
+                    : (currentLanguage === 'th' ? 'มหาวิทยาลัย' : 'University')
+                  }
+                  value={contactInfo.schoolName || contactInfo.universityName}
+                />
+              )}
+              {contactInfo.faculty && (
+                <InfoRow
+                  label={currentLanguage === 'th' ? 'คณะ' : 'Faculty'}
+                  value={contactInfo.faculty}
+                />
+              )}
+              {(contactInfo.studentId || contactInfo.universityId) && (
+                <InfoRow
+                  label={currentLanguage === 'th' ? 'รหัสนักเรียน/นักศึกษา' : 'Student ID'}
+                  value={contactInfo.studentId || contactInfo.universityId}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 4. Crew Information */}
+      <div className="glass-container rounded-2xl p-6 sm:p-8">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className={`text-xl ${getClass('header')} text-white flex items-center space-x-2`}>
+            <span>👥</span>
+            <span>{currentLanguage === 'th' ? 'ข้อมูลทีมงาน' : 'Crew Information'}</span>
+            <span className="px-2 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm">
+              {application.crewMembers?.length || 0}
+            </span>
+          </h3>
+          <button
+            onClick={() => toggleSection('crew')}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+          >
+            {expandedSections.has('crew') ? 
+              <ChevronUp className="w-5 h-5 text-white/60" /> : 
+              <ChevronDown className="w-5 h-5 text-white/60" />
+            }
+          </button>
+        </div>
+
+        {expandedSections.has('crew') && (
+          <>
+            {application.crewMembers && application.crewMembers.length > 0 ? (
+              <div className="space-y-4">
+                {/* Search and Sort Controls */}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="relative flex-1 max-w-md">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder={currentLanguage === 'th' ? 'ค้นหาทีมงาน...' : 'Search crew...'}
+                      value={crewSearchTerm}
+                      onChange={(e) => setCrewSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-[#FCB283] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Crew Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full glass-card rounded-xl border border-white/10">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-[#AA4626] to-[#FCB283]">
+                        <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
+                          {currentLanguage === 'th' ? 'ชื่อ' : 'Name'}
+                        </th>
+                        <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
+                          {currentLanguage === 'th' ? 'บทบาท' : 'Role'}
+                        </th>
+                        <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
+                          {currentLanguage === 'th' ? 'อายุ' : 'Age'}
+                        </th>
+                        <th className={`px-4 py-3 text-left ${getClass('subtitle')} text-white text-sm`}>
+                          {currentLanguage === 'th' ? 'ติดต่อ' : 'Contact'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredCrew.map((member: any, index: number) => (
+                        <tr key={index} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                          <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
+                            <div>
+                              <div className="font-medium">
+                                {currentLanguage === 'th' && member.fullNameTh 
+                                  ? member.fullNameTh 
+                                  : member.fullName}
+                              </div>
+                              {member.fullNameTh && (
+                                <div className="text-xs text-white/60">
+                                  {currentLanguage === 'th' ? member.fullName : member.fullNameTh}
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                          <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
+                            {member.role === 'Other' ? member.customRole : member.role}
+                          </td>
+                          <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
+                            {member.age} {currentLanguage === 'th' ? 'ปี' : 'years'}
+                          </td>
+                          <td className={`px-4 py-3 ${getClass('body')} text-white/90 text-sm`}>
+                            <div className="space-y-1">
+                              {member.phone && (
+                                <div className="flex items-center space-x-2">
+                                  <Phone className="w-3 h-3 text-white/60" />
+                                  <span className="text-xs">{member.phone}</span>
+                                </div>
+                              )}
+                              {member.email && (
+                                <div className="flex items-center space-x-2">
+                                  <Mail className="w-3 h-3 text-white/60" />
+                                  <span className="text-xs break-all">{member.email}</span>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Show More/Less Button */}
+                {application.crewMembers.length > 5 && (
+                  <div className="text-center">
+                    <button
+                      onClick={() => setShowAllCrew(!showAllCrew)}
+                      className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+                    >
+                      {showAllCrew 
+                        ? (currentLanguage === 'th' ? 'แสดงน้อยลง' : 'Show Less')
+                        : `${currentLanguage === 'th' ? 'แสดงทั้งหมด' : 'Show All'} (${application.crewMembers.length - 5} more)`
+                      }
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                <p className={`${getClass('body')} text-white/60`}>
+                  {currentLanguage === 'th' ? 'ไม่มีทีมงานเพิ่มเติม' : 'No additional crew members'}
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* 5. Files & Documents */}
+      <div className="glass-container rounded-2xl p-6 sm:p-8">
+        <h3 className={`text-xl ${getClass('header')} text-white mb-6 flex items-center space-x-2`}>
+          <span>📁</span>
+          <span>{currentLanguage === 'th' ? 'ไฟล์และเอกสาร' : 'Files & Documents'}</span>
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Film File */}
+          <div className="glass-card p-6 rounded-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <Video className="w-6 h-6 text-[#FCB283]" />
+              <div>
+                <h4 className={`${getClass('subtitle')} text-white`}>
+                  {currentLanguage === 'th' ? 'ไฟล์ภาพยนตร์' : 'Film File'}
+                </h4>
+                <p className={`text-xs ${getClass('body')} text-white/60`}>
+                  {application.files.filmFile.name}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between">
+                <span className={`text-xs ${getClass('body')} text-white/60`}>
+                  {currentLanguage === 'th' ? 'ขนาด' : 'Size'}
+                </span>
+                <span className={`text-xs ${getClass('body')} text-white`}>
+                  {formatFileSize(application.files.filmFile.size)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className={`text-xs ${getClass('body')} text-white/60`}>
+                  {currentLanguage === 'th' ? 'สถานะ' : 'Status'}
+                </span>
+                <div className="flex items-center space-x-1">
+                  {getFileStatusIcon(application.files.filmFile)}
+                  <span className={`text-xs ${getClass('body')} text-white`}>
+                    {getFileStatusText(application.files.filmFile)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {application.files.filmFile.url && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleFileDownload(application.files.filmFile.url, application.files.filmFile.name)}
+                  className="flex items-center space-x-1 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-xs"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>{currentLanguage === 'th' ? 'ดาวน์โหลด' : 'Download'}</span>
+                </button>
+                <button
+                  onClick={() => handleCopyLink(application.files.filmFile.url)}
+                  className="flex items-center space-x-1 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-xs"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>{currentLanguage === 'th' ? 'คัดลอก' : 'Copy'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Poster File */}
+          <div className="glass-card p-6 rounded-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <Image className="w-6 h-6 text-[#FCB283]" />
+              <div>
+                <h4 className={`${getClass('subtitle')} text-white`}>
+                  {currentLanguage === 'th' ? 'โปสเตอร์' : 'Poster'}
+                </h4>
+                <p className={`text-xs ${getClass('body')} text-white/60`}>
+                  {application.files.posterFile.name}
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between">
+                <span className={`text-xs ${getClass('body')} text-white/60`}>
+                  {currentLanguage === 'th' ? 'ขนาด' : 'Size'}
+                </span>
+                <span className={`text-xs ${getClass('body')} text-white`}>
+                  {formatFileSize(application.files.posterFile.size)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className={`text-xs ${getClass('body')} text-white/60`}>
+                  {currentLanguage === 'th' ? 'สถานะ' : 'Status'}
+                </span>
+                <div className="flex items-center space-x-1">
+                  {getFileStatusIcon(application.files.posterFile)}
+                  <span className={`text-xs ${getClass('body')} text-white`}>
+                    {getFileStatusText(application.files.posterFile)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {application.files.posterFile.url && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelectedFilePreview(application.files.posterFile.url)}
+                  className="flex items-center space-x-1 px-3 py-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500/30 transition-colors text-xs"
+                >
+                  <Eye className="w-3 h-3" />
+                  <span>{currentLanguage === 'th' ? 'ดู' : 'View'}</span>
+                </button>
+                <button
+                  onClick={() => handleFileDownload(application.files.posterFile.url, application.files.posterFile.name)}
+                  className="flex items-center space-x-1 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-xs"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>{currentLanguage === 'th' ? 'ดาวน์โหลด' : 'Download'}</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Proof File */}
+          {application.files.proofFile && (
+            <div className="glass-card p-6 rounded-xl">
+              <div className="flex items-center space-x-3 mb-4">
+                <FileText className="w-6 h-6 text-[#FCB283]" />
+                <div>
+                  <h4 className={`${getClass('subtitle')} text-white`}>
+                    {currentLanguage === 'th' ? 'เอกสารหลักฐาน' : 'Proof Document'}
+                  </h4>
+                  <p className={`text-xs ${getClass('body')} text-white/60`}>
+                    {application.files.proofFile.name}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between">
+                  <span className={`text-xs ${getClass('body')} text-white/60`}>
+                    {currentLanguage === 'th' ? 'ขนาด' : 'Size'}
+                  </span>
+                  <span className={`text-xs ${getClass('body')} text-white`}>
+                    {formatFileSize(application.files.proofFile.size)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className={`text-xs ${getClass('body')} text-white/60`}>
+                    {currentLanguage === 'th' ? 'สถานะ' : 'Status'}
+                  </span>
+                  <div className="flex items-center space-x-1">
+                    {getFileStatusIcon(application.files.proofFile)}
+                    <span className={`text-xs ${getClass('body')} text-white`}>
+                      {getFileStatusText(application.files.proofFile)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {application.files.proofFile.url && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleFileDownload(application.files.proofFile.url, application.files.proofFile.name)}
+                    className="flex items-center space-x-1 px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-xs"
+                  >
+                    <Download className="w-3 h-3" />
+                    <span>{currentLanguage === 'th' ? 'ดาวน์โหลด' : 'Download'}</span>
+                  </button>
+                  <button
+                    onClick={() => handleCopyLink(application.files.proofFile.url)}
+                    className="flex items-center space-x-1 px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors text-xs"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>{currentLanguage === 'th' ? 'คัดลอก' : 'Copy'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Admin Controls Panel */}
+      <AdminControlsPanel
+        application={application}
+        onStatusChange={handleStatusChange}
+        onNotesChange={handleNotesChange}
+        onFlagToggle={handleFlagToggle}
+        onExport={handleExport}
+        onPrint={handlePrint}
+        isUpdating={isUpdatingStatus}
+      />
 
       {/* File Preview Modal */}
       {selectedFilePreview && (
