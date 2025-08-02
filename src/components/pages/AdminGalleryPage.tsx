@@ -488,17 +488,35 @@ const AdminGalleryPage: React.FC<AdminGalleryPageProps> = ({ onSidebarToggle }) 
 
   // Loading skeleton component
   const LoadingSkeleton = () => (
-    <div className={`grid ${getGridColumns()} gap-4 sm:gap-6`}>
-      {Array.from({ length: pagination.itemsPerPage }).map((_, index) => (
-        <div key={index} className="glass-container rounded-xl overflow-hidden animate-pulse">
-          <div className="aspect-[4/5] bg-white/20"></div>
-          <div className="p-4 space-y-2">
-            <div className="h-4 bg-white/20 rounded w-3/4"></div>
-            <div className="h-3 bg-white/10 rounded w-1/2"></div>
+    viewMode === 'grid' ? (
+      <div className={`grid ${getGridColumns()} gap-4 sm:gap-6`}>
+        {Array.from({ length: pagination.itemsPerPage }).map((_, index) => (
+          <div key={index} className="glass-container rounded-xl overflow-hidden animate-pulse">
+            <div className="aspect-[4/5] bg-white/20"></div>
+            <div className="p-4 space-y-2">
+              <div className="h-4 bg-white/20 rounded w-3/4"></div>
+              <div className="h-3 bg-white/10 rounded w-1/2"></div>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    ) : (
+      <div className="space-y-3">
+        {Array.from({ length: pagination.itemsPerPage }).map((_, index) => (
+          <div key={index} className="glass-container rounded-xl p-4 animate-pulse">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-20 bg-white/20 rounded-lg"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-white/20 rounded w-3/4"></div>
+                <div className="h-3 bg-white/10 rounded w-1/2"></div>
+                <div className="h-3 bg-white/10 rounded w-1/3"></div>
+              </div>
+              <div className="w-20 h-6 bg-white/20 rounded"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
   );
 
   // Error retry component
