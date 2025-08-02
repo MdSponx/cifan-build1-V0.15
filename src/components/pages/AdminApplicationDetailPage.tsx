@@ -898,139 +898,18 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
                       ? application.filmTitleTh 
                       : application.filmTitle}
                   </h1>
-                  {application.filmTitleTh && (
-                    <h2 className={`text-lg ${getClass('subtitle')} text-[#FCB283] opacity-80`}>
-                      {currentLanguage === 'th' ? application.filmTitle : application.filmTitleTh}
-                    </h2>
-                  )}
-                </div>
-                
-                {/* Competition Category Badge */}
-                <div className="flex items-center space-x-2 px-4 py-2 glass-card rounded-xl">
-                  <img 
-                    src={getCategoryLogo(application.competitionCategory)}
-                    alt={`${application.competitionCategory} logo`}
-                    className="h-6 w-auto object-contain"
-                  />
-                  <span className={`text-sm ${getClass('subtitle')} text-[#FCB283] capitalize`}>
-                    {application.competitionCategory}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced Film Metadata Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Nationality */}
-              <div className="glass-card p-4 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Globe className="w-4 h-4 text-[#FCB283]" />
-                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                    {currentContent.nationality}
-                  </h4>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-lg">{getCountryFlag((application as any).nationality || 'Unknown')}</span>
-                  <p className={`${getClass('body')} text-white`}>
-                    {(application as any).nationality || 'Unknown'}
-                  </p>
-                </div>
-              </div>
-              
-              {/* Format and Duration */}
-              <div className="glass-card p-4 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Video className="w-4 h-4 text-[#FCB283]" />
-                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                    {currentContent.formatDetails}
-                  </h4>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-lg">{application.format === 'live-action' ? '🎬' : '🎨'}</span>
-                    <p className={`${getClass('body')} text-white capitalize`}>
-                      {application.format.replace('-', ' ')}
-                    </p>
-                  </div>
-                  <p className={`${getClass('body')} text-white/70 text-sm`}>
-                    {application.duration} {currentLanguage === 'th' ? 'นาที' : 'minutes'}
-                  </p>
-                </div>
-              </div>
-
               {/* Director/Submitter */}
               <div className="glass-card p-4 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <User className="w-4 h-4 text-[#FCB283]" />
-                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                    {application.competitionCategory === 'world' ? 
-                      (currentLanguage === 'th' ? 'ผู้กำกับ' : 'Director') :
-                      (currentLanguage === 'th' ? 'ผู้ส่งผลงาน' : 'Submitter')
-                    }
-                  </h4>
-                </div>
-                <p className={`${getClass('body')} text-white`}>
-                  {currentLanguage === 'th' && contactInfo.nameTh 
-                    ? contactInfo.nameTh 
-                    : contactInfo.name}
-                </p>
-                {contactInfo.nameTh && (
-                  <p className={`${getClass('body')} text-white/60 text-sm`}>
-                    {currentLanguage === 'th' ? contactInfo.name : contactInfo.nameTh}
-                  </p>
-                )}
-              </div>
-
-              {/* Production Year */}
-              <div className="glass-card p-4 rounded-xl">
-                <div className="flex items-center space-x-2 mb-2">
-                  <Calendar className="w-4 h-4 text-[#FCB283]" />
-                  <h4 className={`text-sm ${getClass('subtitle')} text-white/80`}>
-                    {currentContent.productionYear}
-                  </h4>
-                </div>
-                <p className={`${getClass('body')} text-white`}>
-                  {application.createdAt.getFullYear()}
-                </p>
-              </div>
-            </div>
-
-            {/* Genre Tags */}
-            <div>
-              <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
-                {currentContent.genres}
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {application.genres.map((genre, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-[#FCB283]/20 text-[#FCB283] rounded-full text-sm border border-[#FCB283]/30 hover:bg-[#FCB283]/30 transition-colors"
-                  >
-                    {genre}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Synopsis and Chiang Mai Connection - Full Width Below */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Synopsis */}
-          <div className="glass-card p-6 rounded-xl">
-            <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
-              <span>📖</span>
-              <span>{currentLanguage === 'th' ? 'เรื่องย่อ' : 'Synopsis'}</span>
-            </h4>
-            <p className={`${getClass('body')} text-white/90 leading-relaxed whitespace-pre-wrap`}>
-              {application.synopsis}
-            </p>
-          </div>
-
-          {/* Chiang Mai Connection */}
-          {application.chiangmaiConnection && (
-            <div className="glass-card p-6 rounded-xl">
-              <h4 className={`text-lg ${getClass('subtitle')} text-white mb-4 flex items-center space-x-2`}>
+                    {/* VideoScoringPanel - 1/3 width */}
+                    <div className="xl:col-span-1">
+                      <VideoScoringPanel
+                        applicationId={application.id}
+                        currentScores={currentUserScore}
+                        allScores={application.scores || []}
+                        onScoreChange={handleScoreChange}
+                        onSaveScores={handleSaveScore}
+                        isSubmitting={isSubmitting}
+                      />
                 <span>🏔️</span>
                 <span>{currentLanguage === 'th' ? 'ความเกี่ยวข้องกับเชียงใหม่' : 'Connection to Chiang Mai'}</span>
               </h4>
@@ -1090,8 +969,9 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
               </div>
             </div>
 
-            {/* Score Summary and Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className={`text-2xl ${getClass('header')} text-[#FCB283] mb-1 flex items-center space-x-2`}>
+                              <span>{averageScore.toFixed(1)}/50</span>
+                              <span className="text-lg">({averagePercentage}%)</span>
               {/* Score Summary */}
               <div className="glass-card p-4 rounded-xl">
                 <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-3`}>
