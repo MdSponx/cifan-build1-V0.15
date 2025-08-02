@@ -1166,46 +1166,48 @@ const AdminApplicationDetailPage: React.FC<AdminApplicationDetailPageProps> = ({
               </div>
             </div>
           </div>
-              />
-              <InfoRow
-                label={currentLanguage === 'th' ? 'โทรศัพท์' : 'Phone'}
-                value={contactInfo.phone}
-              />
-            </div>
-          </div>
-        </div>
 
-        {/* Educational Information - Full Width Below */}
-        {(contactInfo.schoolName || contactInfo.universityName || contactInfo.faculty) && (
-          <div className="mt-6 glass-card p-4 rounded-xl">
-            <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-4`}>
-              {currentLanguage === 'th' ? 'ข้อมูลการศึกษา' : 'Educational Information'}
-            </h4>
-            <div className="space-y-3">
-              {(contactInfo.schoolName || contactInfo.universityName) && (
-                <InfoRow
-                  label={application.competitionCategory === 'youth' 
-                    ? (currentLanguage === 'th' ? 'โรงเรียน' : 'School')
-                    : (currentLanguage === 'th' ? 'มหาวิทยาลัย' : 'University')
-                  }
-                  value={contactInfo.schoolName || contactInfo.universityName}
-                />
-              )}
-              {contactInfo.faculty && (
-                <InfoRow
-                  label={currentLanguage === 'th' ? 'คณะ' : 'Faculty'}
-                  value={contactInfo.faculty}
-                />
-              )}
-              {(contactInfo.studentId || contactInfo.universityId) && (
-                <InfoRow
-                  label={currentLanguage === 'th' ? 'รหัสนักเรียน/นักศึกษา' : 'Student ID'}
-                  value={contactInfo.studentId || contactInfo.universityId}
-                />
-              )}
+          {/* Educational Information - Full Width Below */}
+          {(contactInfo.schoolName || contactInfo.universityName || contactInfo.faculty) && (
+            <div className="mt-6 glass-card p-4 rounded-xl">
+              <h4 className={`text-sm ${getClass('subtitle')} text-white/80 mb-4`}>
+                {currentContent.educationalInfo}
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {contactInfo.schoolName && (
+                  <InfoRow 
+                    label={currentContent.schoolName} 
+                    value={contactInfo.schoolName} 
+                  />
+                )}
+                {contactInfo.studentId && (
+                  <InfoRow 
+                    label={currentContent.studentId} 
+                    value={contactInfo.studentId} 
+                  />
+                )}
+                {contactInfo.universityName && (
+                  <InfoRow 
+                    label={currentContent.universityName} 
+                    value={contactInfo.universityName} 
+                  />
+                )}
+                {contactInfo.faculty && (
+                  <InfoRow 
+                    label={currentContent.faculty} 
+                    value={contactInfo.faculty} 
+                  />
+                )}
+                {contactInfo.universityId && (
+                  <InfoRow 
+                    label={currentContent.universityId} 
+                    value={contactInfo.universityId} 
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* 4. Crew Information */}
