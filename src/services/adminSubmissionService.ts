@@ -411,9 +411,6 @@ class AdminSubmissionService {
           ...score,
           scoredAt: score.scoredAt?.toDate ? score.scoredAt.toDate() : score.scoredAt
         })),
-          ...score,
-          scoredAt: score.scoredAt?.toDate ? score.scoredAt.toDate() : score.scoredAt
-        })),
         adminNotes: data.adminNotes || '',
         reviewStatus: data.reviewStatus || 'pending',
         flagged: data.flagged || false,
